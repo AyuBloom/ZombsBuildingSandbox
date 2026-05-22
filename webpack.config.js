@@ -66,7 +66,6 @@ module.exports = {
       patterns: [
         { from: "src/image", to: "asset/image" },
         { from: "src/favicon.ico", to: "favicon.ico" },
-        { from: "src/zombs_wasm.wasm", to: "asset/zombs_wasm.wasm" },
       ],
     }),
   ],
