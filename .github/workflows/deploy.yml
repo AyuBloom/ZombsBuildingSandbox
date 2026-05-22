@@ -50,15 +50,9 @@ jobs:
 
       # Rewrite all hardcoded absolute "/asset/" references in the built
       # HTML, CSS and JS files so they resolve under the subpath.
-      # This covers:
-      #   - inline <script> asset paths  (e.g. "/asset/image/...")
-      #   - CSS url('/asset/...')         references
-      #   - <link href="/asset/app.css">  and <script src="/asset/app.js">
+      # Handles both plain /asset/ and JSON-escaped \/asset\/ forms.
       - name: Rewrite absolute asset paths for subpath deployment
-        run: |
-          echo "Rewriting /asset/ → ${BASE_PATH}asset/ in release/"
-          find release -type f \( -name '*.html' -o -name '*.css' -o -name '*.js' \) \
-            -exec sed -i "s|/asset/|${BASE_PATH}asset/|g" {} +
+        run: node scripts/rewrite-asset-paths.js release
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
