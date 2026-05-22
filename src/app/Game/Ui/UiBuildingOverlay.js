@@ -295,21 +295,28 @@ class UiBuildingOverlay extends _UiComponent {
     sellBuilding() {
         if (this.buildingUid) {
             if (this.buildingId === "GoldStash") {
-                debug("Selling GoldStash (sells entire base): %d", this.buildingUid);
-                _Game.currentGame.network.sendRpc({
-                    name: "DeleteBuilding",
-                    uid: this.buildingUid
+                var buildingUid = this.buildingUid;
+                this.ui.components.PopupOverlay.showConfirmation("Are you sure you want to sell all buildings?", 5000, function() {
+                    debug("Selling GoldStash (sells entire base): %d", buildingUid);
+                    _Game.currentGame.network.sendRpc({
+                        name: "DeleteBuilding",
+                        uid: buildingUid
+                    });
                 });
             } else if (this.shouldUpgradeAll) {
                 var buildings = this.ui.getBuildings();
+                var uidsToDelete = [];
                 debug("Sending delete request for all buildings of type: %s", this.buildingId);
                 for (var uid in buildings) {
                     if (buildings[uid].type === this.buildingId) {
-                        _Game.currentGame.network.sendRpc({
-                            name: "DeleteBuilding",
-                            uid: parseInt(uid)
-                        });
+                        uidsToDelete.push(parseInt(uid));
                     }
+                }
+                for (var i = 0; i < uidsToDelete.length; i++) {
+                    _Game.currentGame.network.sendRpc({
+                        name: "DeleteBuilding",
+                        uid: uidsToDelete[i]
+                    });
                 }
             } else {
                 debug("Sending delete request for building: %d", this.buildingUid);

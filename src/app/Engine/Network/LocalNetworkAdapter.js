@@ -439,18 +439,18 @@ class LocalNetworkAdapter extends _NetworkAdapter {
                         this.entities.delete(data.uid);
                         if (this.goldstash && data.uid == this.goldstash.uid) {
                             this.goldstash = undefined;
-                            for (let i in this.activeBuildingsByPos) {
-                                delete this.activeBuildingsByPos[i];
-                            }
-                            for (let i in this.buildings) {
-                                this.buildings[i].dead = 1;
+                            const buildingUids = Object.keys(this.buildings);
+                            this.activeBuildingsByPos = {};
+                            for (let i = 0; i < buildingUids.length; i++) {
+                                const uid = buildingUids[i];
+                                this.buildings[uid].dead = 1;
                                 this.onMessage({
                                     name: 'LocalBuilding',
-                                    response: [this.buildings[i]],
+                                    response: [this.buildings[uid]],
                                     opcode: 9
                                 });
-                                delete this.buildings[i];
-                                this.entities.delete(Number(i));
+                                delete this.buildings[uid];
+                                this.entities.delete(Number(uid));
                             }
                             for (let i in this.towersLength) {
                                 this.towersLength[i] = 0;

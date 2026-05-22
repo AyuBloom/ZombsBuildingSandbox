@@ -67,8 +67,8 @@ class Ui extends EventEmitter {
             return false;
         };
         document.body.appendChild(this.uiElem);
-        this.addComponent("Map", new _UiMap(this), UiAnchor.BOTTOM_LEFT);
-        this.addComponent("Toolbar", new _UiToolbar(this), UiAnchor.BOTTOM_RIGHT);
+        this.addComponent("Map", new _UiMap(this), UiAnchor.TOP_RIGHT);
+        this.addComponent("Toolbar", new _UiToolbar(this), UiAnchor.BOTTOM_CENTER);
         this.addComponent("MenuIcons", new _UiMenuIcons(this), UiAnchor.TOP_LEFT);
         this.addComponent("PipOverlay", new _UiPipOverlay(this));
         this.addComponent("PopupOverlay", new _UiPopupOverlay(this));
@@ -316,6 +316,9 @@ class Ui extends EventEmitter {
         var placementOverlay = this.components.PlacementOverlay;
         this.isMouseDown = true;
         if (!this.components.Intro.isVisible() && !this.components.Reconnect.isVisible() && !this.components.Respawn.isVisible()) {
+            if (event.altKey && this.isGameWorldEvent(event)) {
+                return;
+            }
             if (placementOverlay.isActive()) {
                 placementOverlay.placeBuilding();
             }
@@ -329,6 +332,10 @@ class Ui extends EventEmitter {
         this.isMouseDown = false;
         if (!this.components.Intro.isVisible() && !this.components.Reconnect.isVisible() && !this.components.Respawn.isVisible()) {
             menuSettings.hide();
+            if (event.altKey && this.isGameWorldEvent(event)) {
+                this.teleportToWorldPosition(event.clientX, event.clientY);
+                return;
+            }
             if (!placementOverlay.isActive()) {
                 if (this.playerWeaponName !== "Pickaxe") {
                     buildingOverlay.stopWatching();
@@ -362,6 +369,27 @@ class Ui extends EventEmitter {
                     buildingOverlay.stopWatching();
                 }
             }
+        }
+    }
+    isGameWorldEvent(event) {
+      console.log(event.target);
+        return event.target.id === "hud";
+    }
+    teleportToWorldPosition(screenX, screenY) {
+        var worldPos = _Game.currentGame.renderer.screenToWorld(screenX, screenY);
+        var worldWidth = _Game.currentGame.world.getWidth() || 24000;
+        var worldHeight = _Game.currentGame.world.getHeight() || 24000;
+        var targetX = Math.round(worldPos.x);
+        var targetY = Math.round(worldPos.y);
+        targetX = Math.max(192, Math.min(worldWidth - 192, targetX));
+        targetY = Math.max(192, Math.min(worldHeight - 192, targetY));
+        _Game.currentGame.network.sendRpc({
+            name: "TeleportPlayer",
+            x: targetX,
+            y: targetY
+        });
+        if (this.components.PopupOverlay) {
+            this.components.PopupOverlay.showHint("Teleported to (" + targetX + ", " + targetY + ")", 2000);
         }
     }
     onMouseRightUp(event) {

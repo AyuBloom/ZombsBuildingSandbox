@@ -199,7 +199,7 @@ class UiPlacementOverlay extends _UiComponent {
                 type: this.buildingId,
                 yaw: this.direction * 90
             });
-            if (schemaData.built + 1 >= schemaData.limit) {
+            if (schemaData.built >= schemaData.limit) {
                 this.cancelPlacing();
             }
             return true;
