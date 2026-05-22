@@ -50,6 +50,9 @@ class LocalNetworkAdapter extends _NetworkAdapter {
         this.uid = 825;
         this.playerUid = ++this.uid;
         this.entities = new Map();
+        this.unchangedEntities = new Map();
+        this.dirtyEntities = new Set();
+        this.fullEntitySyncPending = true;
         this.newEntities = {};
         this.newEntitiesByPos = {};
         this.buildings = {};
@@ -276,7 +279,11 @@ class LocalNetworkAdapter extends _NetworkAdapter {
                 });
 
                 this.entities = new Map();
+                this.unchangedEntities = new Map();
+                this.dirtyEntities = new Set();
+                this.fullEntitySyncPending = true;
                 this.entities.set(this.playerUid, this.playerdata);
+                this.unchangedEntities.set(this.playerUid, true);
 
                 // Decode serverspots
                 const currentServerId = _Game.currentGame.options.serverId;
@@ -289,6 +296,7 @@ class LocalNetworkAdapter extends _NetworkAdapter {
                     for (let i in spots) {
                         const entity = window.toInclude(spots[i]);
                         this.entities.set(entity.uid, entity);
+                        this.unchangedEntities.set(entity.uid, true);
                         this.rss[entity.uid] = entity;
                     }
                 }
@@ -299,7 +307,7 @@ class LocalNetworkAdapter extends _NetworkAdapter {
                 this.tickInterval = setInterval(() => {
                     this.onMessage({
                         tick: this.ticks++,
-                        entities: this.entities,
+                        entities: this.createEntityUpdate(),
                         byteSize: 48,
                         opcode: 0
                     });
@@ -344,6 +352,7 @@ class LocalNetworkAdapter extends _NetworkAdapter {
                     if (data.x >= 0 && data.x <= 24000 && data.y >= 0 && data.y <= 24000) {
                         this.playerdata.position.x = data.x;
                         this.playerdata.position.y = data.y;
+                        this.markEntityDirty(this.playerUid);
                     }
                     return;
                 }
@@ -363,6 +372,8 @@ class LocalNetworkAdapter extends _NetworkAdapter {
                             this.newEntities[_uid] = entity;
                             this.newEntitiesByPos[data.x + ", " + data.y + ", " + data.type] = entity;
                             this.entities.set(_uid, entity);
+                            this.unchangedEntities.set(_uid, true);
+                            this.markEntityDirty(_uid);
                         }
                     }
                 }
@@ -404,6 +415,8 @@ class LocalNetworkAdapter extends _NetworkAdapter {
                         this.buildings[_uid] = obj;
                         this.activeBuildingsByPos[data.x + ", " + data.y] = obj;
                         this.entities.set(_uid, this.createBuildingEntity(_uid, data.x, data.y, data.type, data.yaw, 1));
+                        this.unchangedEntities.set(_uid, true);
+                        this.markEntityDirty(_uid);
                         ++this.towersLength[data.type];
                         this.onMessage({
                             name: 'LocalBuilding',
@@ -431,6 +444,8 @@ class LocalNetworkAdapter extends _NetworkAdapter {
                         this.buildings[_uid] = obj;
                         this.activeBuildingsByPos[data.x + ", " + data.y] = obj;
                         this.entities.set(_uid, this.createBuildingEntity(_uid, data.x, data.y, data.type, data.yaw, 1));
+                        this.unchangedEntities.set(_uid, true);
+                        this.markEntityDirty(_uid);
                         ++this.towersLength[data.type];
                         this.onMessage({
                             name: 'LocalBuilding',
@@ -451,6 +466,8 @@ class LocalNetworkAdapter extends _NetworkAdapter {
                         delete this.activeBuildingsByPos[this.buildings[data.uid].x + ", " + this.buildings[data.uid].y];
                         delete this.buildings[data.uid];
                         this.entities.delete(data.uid);
+                        this.unchangedEntities.delete(data.uid);
+                        this.dirtyEntities.delete(data.uid);
                         if (this.goldstash && data.uid == this.goldstash.uid) {
                             this.goldstash = undefined;
                             const buildingUids = Object.keys(this.buildings);
@@ -465,6 +482,8 @@ class LocalNetworkAdapter extends _NetworkAdapter {
                                 });
                                 delete this.buildings[uid];
                                 this.entities.delete(Number(uid));
+                                this.unchangedEntities.delete(Number(uid));
+                                this.dirtyEntities.delete(Number(uid));
                             }
                             for (let i in this.towersLength) {
                                 this.towersLength[i] = 0;
@@ -483,9 +502,31 @@ class LocalNetworkAdapter extends _NetworkAdapter {
                             opcode: 9
                         });
                         this.entities.get(data.uid).tier = tier;
+                        this.markEntityDirty(data.uid);
                     }
                 }
             }
+    }
+
+    markEntityDirty(uid) {
+        this.dirtyEntities.add(Number(uid));
+    }
+
+    createEntityUpdate() {
+        if (this.fullEntitySyncPending) {
+            this.fullEntitySyncPending = false;
+            this.dirtyEntities.clear();
+            return new Map(this.entities);
+        }
+        const update = new Map(this.unchangedEntities);
+        update.set(this.playerUid, this.playerdata);
+        for (const uid of this.dirtyEntities) {
+            if (this.entities.has(uid)) {
+                update.set(uid, this.entities.get(uid));
+            }
+        }
+        this.dirtyEntities.clear();
+        return update;
     }
 
     onMessage(message) {
@@ -508,6 +549,8 @@ class LocalNetworkAdapter extends _NetworkAdapter {
             const factor = dt / 16.6667;
             const _speed = 10;
             const speed = Math.min(45, _speed) * factor;
+            const oldX = this.playerdata.position.x;
+            const oldY = this.playerdata.position.y;
 
             if (this.yaw === 0) {
                 this.playerdata.position.y -= speed;
@@ -540,6 +583,9 @@ class LocalNetworkAdapter extends _NetworkAdapter {
 
             this.playerdata.position.x = Math.max(0, Math.min(24000, this.playerdata.position.x));
             this.playerdata.position.y = Math.max(0, Math.min(24000, this.playerdata.position.y));
+            if (this.playerdata.position.x !== oldX || this.playerdata.position.y !== oldY) {
+                this.markEntityDirty(this.playerUid);
+            }
         }, 16);
     }
 

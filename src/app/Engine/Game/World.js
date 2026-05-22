@@ -132,8 +132,6 @@ class World {
             if (data.entities.has(uid)) {
                 if (data.entities.get(uid) !== true) {
                     this.updateEntity(uid, data.entities.get(uid));
-                } else {
-                    this.updateEntity(uid, this.entities.get(uid).getTargetTick());
                 }
             } else {
                 this.removeEntity(uid);
