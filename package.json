@@ -1,0 +1,41 @@
+{
+  "dependencies": {
+    "express": "^4.21.2",
+    "path": "^0.12.7"
+  },
+  "name": "zombs-building-sandbox",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "webpack --config webpack.prod.js",
+    "dev": "webpack serve"
+  },
+  "author": "",
+  "license": "ISC",
+  "keywords": [],
+  "devDependencies": {
+    "@babel/core": "^7.28.4",
+    "@babel/plugin-transform-runtime": "^7.28.3",
+    "@babel/preset-env": "^7.28.3",
+    "@babel/runtime": "^7.28.4",
+    "babel-loader": "^10.0.0",
+    "browser-request": "^0.3.3",
+    "bytebuffer": "^5.0.1",
+    "copy-webpack-plugin": "^14.0.0",
+    "css-loader": "^7.1.2",
+    "debug": "^4.4.3",
+    "events": "^3.3.0",
+    "exports-loader": "^5.0.0",
+    "html-webpack-plugin": "^5.6.4",
+    "mini-css-extract-plugin": "^2.9.4",
+    "number-abbreviate": "^2.0.0",
+    "pixi.js": "^7.4.2",
+    "stats.js": "^0.17.0",
+    "underscore": "^1.13.7",
+    "webpack": "^5.102.1",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.2",
+    "xss": "^1.0.15"
+  },
+  "description": "",
+  "packageManager": "pnpm@10.11.1+sha512.e519b9f7639869dc8d5c3c5dfef73b3f091094b0a006d7317353c72b124e80e1afd429732e28705ad6bfa1ee879c1fce46c128ccebd3192101f43dd67c667912"
+}
