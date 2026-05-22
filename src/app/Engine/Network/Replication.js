@@ -188,6 +188,8 @@ class Replication {
             this.msInThisTick = 0;
             this.shiftedGameTime = 0;
             this.serverTime = 0;
+            this.currentTick = null;
+            this.ticks = [];
             this.receivedFirstTick = false;
             this.msElapsed = 0;
             this.lastMsElapsed = 0;

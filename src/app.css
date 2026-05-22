@@ -251,13 +251,16 @@ a:hover {
 }
 
 .hud .hud-top-right {
+    display: flex;
     position: absolute;
     top: 20px;
     right: 20px;
+    align-items: flex-start;
+    gap: 10px;
 }
 
 .hud .hud-top-right>* {
-    margin: 0 0 20px;
+    margin: 0;
 }
 
 .hud .hud-bottom-left {
@@ -936,6 +939,38 @@ main.privacy strong {
 /**
  * UiMap
  */
+
+.hud-server-switcher {
+    display: block;
+    position: relative;
+    z-index: 10;
+    pointer-events: auto;
+}
+
+.hud-server-switcher select {
+    display: block;
+    width: 170px;
+    height: 40px;
+    line-height: 24px;
+    padding: 6px 32px 6px 10px;
+    background: rgba(0, 0, 0, 0.4);
+    color: #eee;
+    border: none;
+    font-size: 14px;
+    border-radius: 4px;
+    outline: none;
+    transition: all 0.15s ease-in-out;
+}
+
+.hud-server-switcher select:focus {
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.hud-server-switcher select option {
+    background: #222;
+    color: #eee;
+}
 
 .hud-map {
     display: block;
@@ -2449,29 +2484,6 @@ main.privacy strong {
     color: rgba(255, 255, 255, 0.4);
     text-transform: uppercase;
     font-size: 12px;
-}
-
-.hud-menu-settings .hud-settings-grid select {
-    display: block;
-    width: 100%;
-    height: 40px;
-    line-height: 24px;
-    padding: 6px 10px;
-    background: rgba(255, 255, 255, 0.1);
-    color: #eee;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    font-size: 14px;
-    border-radius: 4px;
-    outline: none;
-    transition: all 0.15s ease-in-out;
-}
-.hud-menu-settings .hud-settings-grid select:focus {
-    border-color: rgba(255, 255, 255, 0.5);
-    background: rgba(255, 255, 255, 0.15);
-}
-.hud-menu-settings .hud-settings-grid select option {
-    background: #222;
-    color: #eee;
 }
 
 .hud-menu-settings .hud-settings-grid .hud-settings-controls {

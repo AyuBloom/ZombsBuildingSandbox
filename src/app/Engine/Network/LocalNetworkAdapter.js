@@ -9,11 +9,21 @@ class LocalNetworkAdapter extends _NetworkAdapter {
         this.connecting = false;
         this.tickInterval = null;
         this.moveInterval = null;
+        this.connectTimeout = null;
+        this.preEnterWorldTimeout = null;
     }
 
     disconnect() {
         this.connected = false;
         this.connecting = false;
+        if (this.connectTimeout) {
+            clearTimeout(this.connectTimeout);
+            this.connectTimeout = null;
+        }
+        if (this.preEnterWorldTimeout) {
+            clearTimeout(this.preEnterWorldTimeout);
+            this.preEnterWorldTimeout = null;
+        }
         if (this.tickInterval) {
             clearInterval(this.tickInterval);
             this.tickInterval = null;
@@ -161,13 +171,15 @@ class LocalNetworkAdapter extends _NetworkAdapter {
         this.startMovementInterval();
 
         // Simulate connection open
-        setTimeout(() => {
+        this.connectTimeout = setTimeout(() => {
+            this.connectTimeout = null;
             this.connecting = false;
             this.connected = true;
             this.emitter.emit("connected");
 
             // Send PACKET_PRE_ENTER_WORLD (opcode 5)
-            setTimeout(() => {
+            this.preEnterWorldTimeout = setTimeout(() => {
+                this.preEnterWorldTimeout = null;
                 this.onMessage({
                     opcode: 5,
                     extra: new Uint8Array([67])
@@ -280,6 +292,8 @@ class LocalNetworkAdapter extends _NetworkAdapter {
                         this.rss[entity.uid] = entity;
                     }
                 }
+
+                _Game.currentGame.renderer.follow(_Game.currentGame.world.localPlayer.entity);
 
                 // Tick interval
                 this.tickInterval = setInterval(() => {

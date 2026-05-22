@@ -10,6 +10,7 @@ import _UiPlacementOverlay from "./UiPlacementOverlay";
 import _UiPopupOverlay from "./UiPopupOverlay";
 import _UiReconnect from "./UiReconnect";
 import _UiRespawn from "./UiRespawn";
+import _UiServerSwitcher from "./UiServerSwitcher";
 import _UiToolbar from "./UiToolbar";
 import { EventEmitter } from "events";
 var Debugger = require("debug");
@@ -43,6 +44,7 @@ class Ui extends EventEmitter {
         this.isMouseDown = false;
         this.isWavePaused = false;
         this.options = _Game.currentGame.options || {};
+        this.options.obstacleIndicators = !!this.options.obstacleIndicators;
         this.buildingSchema = JSON.parse(JSON.stringify(require("../buildings")));
         this.itemSchema = JSON.parse(JSON.stringify(require("../items")));
         this.spellSchema = JSON.parse(JSON.stringify(require("../spells")));
@@ -67,6 +69,7 @@ class Ui extends EventEmitter {
             return false;
         };
         document.body.appendChild(this.uiElem);
+        this.addComponent("ServerSwitcher", new _UiServerSwitcher(this), UiAnchor.TOP_RIGHT);
         this.addComponent("Map", new _UiMap(this), UiAnchor.TOP_RIGHT);
         this.addComponent("Toolbar", new _UiToolbar(this), UiAnchor.BOTTOM_CENTER);
         this.addComponent("MenuIcons", new _UiMenuIcons(this), UiAnchor.TOP_LEFT);
@@ -162,6 +165,9 @@ class Ui extends EventEmitter {
     }
     setOption(key, value) {
         this.options[key] = value;
+        if (key === "obstacleIndicators") {
+            _Game.currentGame.world.setObstacleIndicatorsVisible(value);
+        }
     }
     getMousePosition() {
         return this.mousePosition;
@@ -516,6 +522,7 @@ class Ui extends EventEmitter {
             this.parties = {};
             this.emit("partiesUpdate", this.parties);
             this.components.Respawn.hide();
+            this.components.ServerSwitcher.updateServerList();
         }
     }
     onServerShuttingDown(response) {
@@ -778,6 +785,7 @@ class Ui extends EventEmitter {
         this.components.MenuSettings.hide();
         this.components.PlacementOverlay.cancelPlacing();
         this.components.BuildingOverlay.stopWatching();
+        game.renderer.stopFollowing();
         game.world.inWorld = false;
         for (var uid of Array.from(game.world.entities.keys())) {
             game.world.removeEntity(uid);

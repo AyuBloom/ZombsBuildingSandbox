@@ -3,30 +3,18 @@ import _ModelEntity from "../../Engine/Entity/ModelEntity";
 class RangeIndicatorModel extends _ModelEntity {
     constructor(args) {
         super();
+
+        args.innerColor = args.innerColor || {r: 0xc8, g: 0xa0, b: 0x0};
+        args.borderColor = args.borderColor || {r: 0xff, g: 0xc8, b: 0x0};
+
         this.isCircular = false;
         this.isCircular = args.isCircular || false;
         this.goldRegion = new _DrawEntity();
         this.goldRegion.setAlpha(0.1);
         if (this.isCircular) {
-            this.goldRegion.drawCircle(0, 0, args.radius, {
-                r: 200,
-                g: 160,
-                b: 0
-            }, {
-                r: 255,
-                g: 200,
-                b: 0
-            }, 8);
+            this.goldRegion.drawCircle(0, 0, args.radius, args.innerColor, args.borderColor, 8);
         } else {
-            this.goldRegion.drawRect(-args.width / 2, -args.height / 2, args.width / 2, args.height / 2, {
-                r: 200,
-                g: 160,
-                b: 0
-            }, {
-                r: 255,
-                g: 200,
-                b: 0
-            }, 8);
+            this.goldRegion.drawRect(-args.width / 2, -args.height / 2, args.width / 2, args.height / 2, args.innerColor, args.borderColor, 8);
         }
         this.addAttachment(this.goldRegion);
     }
