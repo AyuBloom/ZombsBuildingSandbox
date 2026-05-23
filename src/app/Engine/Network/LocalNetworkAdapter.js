@@ -813,31 +813,43 @@ class LocalNetworkAdapter extends _NetworkAdapter {
         return x % 48 === 0 && y % 48 === 0 && !this.activeBuildingsByPos[(24 + x) + ", " + y] && !this.activeBuildingsByPos[(x - 24) + ", " + y] && !this.activeBuildingsByPos[x + ", " + (y + 24)] && !this.activeBuildingsByPos[x + ", " + (y - 24)] && !this.activeBuildingsByPos[(x - 24) + ", " + (y - 24)] && !this.activeBuildingsByPos[(24 + x) + ", " + (y + 24)] && !this.activeBuildingsByPos[(x - 24) + ", " + (y + 24)] && !this.activeBuildingsByPos[(24 + x) + ", " + (y - 24)] && !this.activeBuildingsByPos[(48 + x) + ", " + y] && !this.activeBuildingsByPos[(x - 48) + ", " + y] && !this.activeBuildingsByPos[x + ", " + (y + 48)] && !this.activeBuildingsByPos[x + ", " + (y - 48)] && !this.activeBuildingsByPos[(x - 48) + ", " + (y - 48)] && !this.activeBuildingsByPos[(48 + x) + ", " + (y + 48)] && !this.activeBuildingsByPos[(x - 48) + ", " + (y + 48)] && !this.activeBuildingsByPos[(48 + x) + ", " + (y - 48)];
     }
 
-    buildingRadius(model, type) {
-        let e = 24;
-        let t;
-        if (type === "Wall" || type === "Door" || type === "SlowTrap") {
-            e = 0;
-        }
-        if (model === "Tree") t = 192;
-        if (model === "Stone") t = 144;
-        if (model === "NeutralCamp") t = 144;
-        return [t / 2, e];
-    }
-
     checkOccupiedBuildingForRss(rss, x, y, type) {
-        const placements = [];
-        const r2 = this.buildingRadius(rss.model, type);
-        const arr_ = [[24, 24], [24, -24], [-24, 24], [-24, -24]];
-        if (r2[1] === 24) {
-            for (let i = 0; i < arr_.length; i++) {
-                placements.push((Math.sqrt((rss.position.x - (x + arr_[i][0])) ** 2 + (rss.position.y - (y + arr_[i][1])) ** 2)));
-            }
-        } else {
-            placements.push(((rss.position.x - x) ** 2 + (rss.position.y - y) ** 2) ** (1 / 2));
+        // Define resource radius (Tree: 70, Stone: 50, NeutralCamp: 60)
+        let radius = 60;
+        if (rss.model === "Tree") {
+            radius = 70;
+        } else if (rss.model === "Stone") {
+            radius = 50;
         }
-        if (placements.find(e => e < r2[0])) {
-            return 1;
+        
+        // Define building half-size (Wall, Door, SlowTrap are 48x48; others are 96x96)
+        let hw = 48;
+        let hh = 48;
+        if (type === "Wall" || type === "Door" || type === "SlowTrap") {
+            hw = 24;
+            hh = 24;
+        }
+        
+        // Bounding box of the building
+        const minX = x - hw;
+        const maxX = x + hw;
+        const minY = y - hh;
+        const maxY = y + hh;
+        
+        // Resource center coordinates
+        const cx = rss.position.x;
+        const cy = rss.position.y;
+        
+        // Closest point on building box to resource center
+        const closestX = Math.max(minX, Math.min(cx, maxX));
+        const closestY = Math.max(minY, Math.min(cy, maxY));
+        
+        // Distance from closest point to resource center
+        const distX = cx - closestX;
+        const distY = cy - closestY;
+        
+        if (distX * distX + distY * distY < radius * radius) {
+            return 1; // Collision detected
         }
     }
 
