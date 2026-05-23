@@ -10,7 +10,7 @@ class UiIntro extends _UiComponent {
         this.serverElem = this.componentElem.querySelector(".hud-intro-server");
         this.submitElem = this.componentElem.querySelector(".hud-intro-play");
         this.errorElem = this.componentElem.querySelector(".hud-intro-error");
-        
+
         this.canvas = document.getElementById("serverspot-canvas");
         this.overlay = document.getElementById("unusable-overlay");
         this.statsElem = this.componentElem.querySelector(".hud-intro-preview-stats");
@@ -26,11 +26,11 @@ class UiIntro extends _UiComponent {
         this.componentElem.addEventListener("wheel", this.onWheel.bind(this));
         this.nameInputElem.addEventListener("keyup", this.onNameInputKeyUp.bind(this));
         this.submitElem.addEventListener("click", this.onSubmitClick.bind(this));
-        
+
         _Game.currentGame.network.addPreEnterWorldHandler(this.onConnectionStart.bind(this));
         _Game.currentGame.network.addErrorHandler(this.onConnectionError.bind(this));
         _Game.currentGame.network.addEnterWorldHandler(this.onEnterWorld.bind(this));
-        
+
         this.checkForPartyInvitation();
         this.updateServerOptions();
         this.updatePreview();
@@ -76,14 +76,14 @@ class UiIntro extends _UiComponent {
             this.submitElem.style.opacity = "0.5";
             return;
         }
-        
+
         if (this.overlay) this.overlay.style.display = "none";
         this.submitElem.removeAttribute("disabled");
         this.submitElem.style.opacity = "1";
-        
+
         const info = window.serverspots[serverId].spotinfo || "825 entities";
         if (this.statsElem) this.statsElem.innerText = info;
-        
+
         this.drawSpots(serverId);
     }
     drawSpots(serverId) {
@@ -92,7 +92,7 @@ class UiIntro extends _UiComponent {
         const width = this.canvas.width;
         const height = this.canvas.height;
         ctx.clearRect(0, 0, width, height);
-        
+
         ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
         ctx.lineWidth = 1;
         const gridSize = 26;
@@ -108,33 +108,33 @@ class UiIntro extends _UiComponent {
             ctx.lineTo(width, y);
             ctx.stroke();
         }
-        
+
         const spots = window.decodeSpotJSON(window.serverspots[serverId].spotEncoded);
         const scale = width / 24000;
-        
+
         for (let id in spots) {
             const spot = spots[id];
             const px = spot.position.x * scale;
             const py = spot.position.y * scale;
-            
+
             if (spot.model === "Tree") {
-                ctx.fillStyle = "#2ecc71";
+                ctx.fillStyle = "#4e6437";
                 ctx.beginPath();
-                ctx.arc(px, py, 2.5, 0, 2 * Math.PI);
+                ctx.arc(px, py, 1, 0, 2 * Math.PI);
                 ctx.fill();
             } else if (spot.model === "Stone") {
-                ctx.fillStyle = "#95a5a6";
+                ctx.fillStyle = "#b3b3b3";
                 ctx.beginPath();
-                ctx.arc(px, py, 2.5, 0, 2 * Math.PI);
+                ctx.arc(px, py, 1, 0, 2 * Math.PI);
                 ctx.fill();
             } else if (spot.model === "NeutralCamp") {
-                ctx.fillStyle = "#f1c40f";
+                ctx.fillStyle = "#ba363f";
                 ctx.beginPath();
-                ctx.arc(px, py, 4, 0, 2 * Math.PI);
+                ctx.arc(px, py, 1, 0, 2 * Math.PI);
                 ctx.fill();
             }
         }
-        
+
         ctx.fillStyle = "#3498db";
         ctx.beginPath();
         ctx.arc(width / 2, height / 2, 5, 0, 2 * Math.PI);
@@ -148,10 +148,10 @@ class UiIntro extends _UiComponent {
         const rect = this.canvas.getBoundingClientRect();
         const cx = event.clientX - rect.left;
         const cy = event.clientY - rect.top;
-        
+
         const gameX = Math.round((cx / this.canvas.width) * 24000);
         const gameY = Math.round((cy / this.canvas.height) * 24000);
-        
+
         this.coordsElem.innerText = "X: " + gameX + " | Y: " + gameY;
         this.coordsElem.style.color = "#eee";
     }
