@@ -2492,22 +2492,27 @@ main.privacy strong {
     border-radius: 3px;
 }
 
-.hud-menu-settings .hud-settings-grid label {
+.hud-menu-settings .hud-settings-grid .hud-settings-group {
     display: block;
     margin: 0 0 20px;
     cursor: default;
 }
 
-.hud-menu-settings .hud-settings-grid label:last-child {
+.hud-menu-settings .hud-settings-grid .hud-settings-group:last-child {
     margin-bottom: 0;
 }
 
-.hud-menu-settings .hud-settings-grid label>span {
+.hud-menu-settings .hud-settings-grid .hud-settings-group>span {
     display: block;
     margin: 0 0 8px;
     color: rgba(255, 255, 255, 0.4);
     text-transform: uppercase;
     font-size: 12px;
+}
+
+.hud-menu-settings .hud-settings-grid .hud-settings-label {
+    cursor: pointer;
+    user-select: none;
 }
 
 .hud-menu-settings .hud-settings-grid .hud-settings-controls,

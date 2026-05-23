@@ -93,7 +93,7 @@ class UiPlacementOverlay extends _UiComponent {
                 } else if (schemaData.rangeTiers) {
                     this.rangeIndicator = new _RangeIndicatorModel({
                         isCircular: true,
-                        radius: schemaData.rangeTiers[0] * 0.57071,
+                        radius: schemaData.rangeTiers[0],
                         innerColor: { r: 0xff, g: 0xff, b: 0xff },
                         borderColor: { r: 0xdd, g: 0xdd, b: 0xdd }
                     });
