@@ -91,17 +91,35 @@ class UiIntro extends _UiComponent {
                     const commit = data[0].commit;
                     const commitDate = new Date(commit.author.date);
                     
-                    const formattedDate = commitDate.toLocaleDateString(undefined, {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    });
+                    const timeAgo = (date) => {
+                        const seconds = Math.floor((new Date() - date) / 1000);
+                        if (seconds < 1) return "just now";
+                        
+                        const intervals = {
+                            year: 31536000,
+                            month: 2592000,
+                            week: 604800,
+                            day: 86400,
+                            hour: 3600,
+                            minute: 60,
+                            second: 1
+                        };
+
+                        for (const [unit, value] of Object.entries(intervals)) {
+                            const count = Math.floor(seconds / value);
+                            if (count >= 1) {
+                                return `${count} ${unit}${count > 1 ? 's' : ''} ago`;
+                            }
+                        }
+                        return "just now";
+                    };
                     
-                    lastUpdatedElem.textContent = `Last Updated: ${formattedDate}`;
+                    const elapsed = timeAgo(commitDate);
+                    const absoluteDate = commitDate.toLocaleString();
+                    
+                    lastUpdatedElem.textContent = `Last Updated: ${elapsed}`;
                     lastUpdatedElem.href = `https://github.com/AyuBloom/ZombsBuildingSandbox/commit/${data[0].sha}`;
-                    lastUpdatedElem.title = commit.message;
+                    lastUpdatedElem.title = `Commit "${commit.message}" on ${absoluteDate}`;
                 } else {
                     lastUpdatedElem.textContent = "Last Updated: Unknown";
                 }
