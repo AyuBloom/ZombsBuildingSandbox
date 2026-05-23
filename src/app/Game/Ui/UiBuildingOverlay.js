@@ -9,6 +9,7 @@ class UiBuildingOverlay extends _UiComponent {
         super(ui, "<div id=\"hud-building-overlay\" class=\"hud-building-overlay hud-tooltip hud-tooltip-top\"></div>");
         this.shouldUpgradeAll = false;
         this.maxStashDistance = 18;
+        this.extraRangeIndicators = {};
         this.componentElem.addEventListener("mousedown", this.onMouseDown.bind(this));
         this.componentElem.addEventListener("mouseup", this.onMouseUp.bind(this));
         _Game.currentGame.renderer.addTickCallback(this.onTick.bind(this));
@@ -46,6 +47,27 @@ class UiBuildingOverlay extends _UiComponent {
             if (!buildingData) {
                 this.stopWatching();
                 return;
+            }
+            if (this.buildingTier !== buildingData.tier) {
+                if (this.rangeIndicator) {
+                    _Game.currentGame.renderer.ground.removeAttachment(this.rangeIndicator);
+                    delete this.rangeIndicator;
+                }
+                this.buildingTier = buildingData.tier;
+                if (this.buildingId === "GoldStash") {
+                    var cellSize = _Game.currentGame.world.entityGrid.getCellSize();
+                    this.rangeIndicator = new _RangeIndicatorModel({
+                        width: this.maxStashDistance * cellSize * 2,
+                        height: this.maxStashDistance * cellSize * 2
+                    });
+                    _Game.currentGame.renderer.ground.addAttachment(this.rangeIndicator);
+                } else if (schemaData.rangeTiers) {
+                    this.rangeIndicator = new _RangeIndicatorModel({
+                        isCircular: true,
+                        radius: schemaData.rangeTiers[this.buildingTier - 1]
+                    });
+                    _Game.currentGame.renderer.ground.addAttachment(this.rangeIndicator);
+                }
             }
             var gridHeight = schemaData.gridHeight;
             var gridWidth = buildingSchema.gridWidth;
@@ -158,6 +180,70 @@ class UiBuildingOverlay extends _UiComponent {
             if (this.rangeIndicator) {
                 this.rangeIndicator.setPosition(networkEntity.getPositionX(), networkEntity.getPositionY());
             }
+
+            if (this.shouldUpgradeAll) {
+                for (var uidStr in this.extraRangeIndicators) {
+                    var uid = parseInt(uidStr);
+                    if (!buildings[uid] || buildings[uid].type !== this.buildingId || uid === this.buildingUid) {
+                        if (this.extraRangeIndicators[uid]) {
+                            _Game.currentGame.renderer.ground.removeAttachment(this.extraRangeIndicators[uid]);
+                        }
+                        delete this.extraRangeIndicators[uid];
+                    }
+                }
+
+                for (var uidStr in buildings) {
+                    var uid = parseInt(uidStr);
+                    if (buildings[uid].type === this.buildingId && uid !== this.buildingUid) {
+                        var otherBuilding = buildings[uid];
+                        var otherEntity = _Game.currentGame.world.getEntityByUid(uid);
+                        if (otherEntity) {
+                            var otherTier = otherBuilding.tier;
+                            var otherSchema = buildingSchema[this.buildingId];
+                            var existingIndicator = this.extraRangeIndicators[uid];
+
+                            if (!existingIndicator || existingIndicator.tier !== otherTier) {
+                                if (existingIndicator) {
+                                    _Game.currentGame.renderer.ground.removeAttachment(existingIndicator);
+                                    delete this.extraRangeIndicators[uid];
+                                }
+
+                                var rangeIndicator = null;
+                                if (this.buildingId === "GoldStash") {
+                                    var cellSize = _Game.currentGame.world.entityGrid.getCellSize();
+                                    rangeIndicator = new _RangeIndicatorModel({
+                                        width: this.maxStashDistance * cellSize * 2,
+                                        height: this.maxStashDistance * cellSize * 2
+                                    });
+                                } else if (otherSchema.rangeTiers) {
+                                    rangeIndicator = new _RangeIndicatorModel({
+                                        isCircular: true,
+                                        radius: otherSchema.rangeTiers[otherTier - 1],
+                                        innerColor: null,
+                                    });
+                                }
+
+                                if (rangeIndicator) {
+                                    rangeIndicator.tier = otherTier;
+                                    _Game.currentGame.renderer.ground.addAttachment(rangeIndicator);
+                                    this.extraRangeIndicators[uid] = rangeIndicator;
+                                }
+                            }
+
+                            if (this.extraRangeIndicators[uid]) {
+                                this.extraRangeIndicators[uid].setPosition(otherEntity.getPositionX(), otherEntity.getPositionY());
+                            }
+                        } else {
+                            if (this.extraRangeIndicators[uid]) {
+                                _Game.currentGame.renderer.ground.removeAttachment(this.extraRangeIndicators[uid]);
+                                delete this.extraRangeIndicators[uid];
+                            }
+                        }
+                    }
+                }
+            } else {
+                this.clearExtraRangeIndicators();
+            }
         }
     }
     startWatching(buildingUid) {
@@ -211,6 +297,7 @@ class UiBuildingOverlay extends _UiComponent {
                 _Game.currentGame.renderer.ground.removeAttachment(this.rangeIndicator);
                 delete this.rangeIndicator;
             }
+            this.clearExtraRangeIndicators();
             this.componentElem.innerHTML = "";
             this.componentElem.style.left = "-1000px";
             this.componentElem.style.top = "-1000px";
@@ -218,6 +305,16 @@ class UiBuildingOverlay extends _UiComponent {
             this.buildingId = null;
             this.buildingTier = null;
             this.hide();
+        }
+    }
+    clearExtraRangeIndicators() {
+        if (this.extraRangeIndicators) {
+            for (var uid in this.extraRangeIndicators) {
+                if (this.extraRangeIndicators[uid]) {
+                    _Game.currentGame.renderer.ground.removeAttachment(this.extraRangeIndicators[uid]);
+                }
+            }
+            this.extraRangeIndicators = {};
         }
     }
     upgradeBuilding() {

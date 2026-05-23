@@ -30,6 +30,7 @@ class UiPlacementOverlay extends _UiComponent {
         this.placeholderText.setPosition(-1000, -1000);
         this.isOffsetting = false;
         this.rangeIndicator = null;
+        this.stashRangeIndicator = null;
         _Game.currentGame.renderer.ui.addAttachment(this.placeholderText);
         _Game.currentGame.renderer.on("cameraUpdate", this.onCameraUpdate.bind(this));
     }
@@ -82,11 +83,10 @@ class UiPlacementOverlay extends _UiComponent {
             var uiPos = _Game.currentGame.renderer.worldToUi(gridPos.x, gridPos.y);
 
             if (!this.rangeIndicator) {
-                var maxStashDistance = this.maxStashDistance;
                 if (this.buildingId === 'GoldStash') {
                     this.rangeIndicator = new _RangeIndicatorModel({
-                        width: maxStashDistance * cellSize * 2,
-                        height: maxStashDistance * cellSize * 2,
+                        width: this.maxStashDistance * cellSize * 2,
+                        height: this.maxStashDistance * cellSize * 2,
                         innerColor: { r: 0xff, g: 0xff, b: 0xff },
                         borderColor: { r: 0xdd, g: 0xdd, b: 0xdd }
                     });
@@ -143,6 +143,16 @@ class UiPlacementOverlay extends _UiComponent {
         var world = _Game.currentGame.world;
         var cellSize = world.entityGrid.getCellSize();
         var totalCellsUsed = schemaData.gridWidth * schemaData.gridHeight;
+        if (this.buildingId !== "GoldStash") {
+          this.stashRangeIndicator = new _RangeIndicatorModel({
+              width: this.maxStashDistance * cellSize * 2,
+              height: this.maxStashDistance * cellSize * 2,
+              innerColor: { r: 0xff, g: 0xff, b: 0xff },
+              borderColor: { r: 0xdd, g: 0xdd, b: 0xdd }
+          });
+          this.stashRangeIndicator.setPosition(this.goldStash.x, this.goldStash.y);
+          _Game.currentGame.renderer.ground.addAttachment(this.stashRangeIndicator);
+        }
         this.placeholderEntity = _Game.currentGame.assetManager.loadModel(schemaData.modelName, {});
         this.placeholderEntity.setAlpha(0.5);
         this.placeholderEntity.setRotation(this.direction * 90);
@@ -216,6 +226,10 @@ class UiPlacementOverlay extends _UiComponent {
                     return false;
                 }
                 var cellPos = world.entityGrid.getCellCoords(cellIndexes[i]);
+                if (this.isOffsetting && this.checkIsOccupied(cellIndexes[i], cellPos)) {
+                    this.ui.components.PopupOverlay.showHint("Cannot offset Gold Stash: target cells are occupied.", 4000);
+                    return false;
+                }
                 cellAverages.x += cellPos.x;
                 cellAverages.y += cellPos.y;
             }
@@ -299,6 +313,10 @@ class UiPlacementOverlay extends _UiComponent {
             if (this.rangeIndicator) {
                 _Game.currentGame.renderer.ground.removeAttachment(this.rangeIndicator);
                 this.rangeIndicator = null;
+            }
+            if (this.stashRangeIndicator) {
+              _Game.currentGame.renderer.ground.removeAttachment(this.stashRangeIndicator);
+              this.stashRangeIndicator = null;
             }
             for (var i in this.placeholderTints) {
                 _Game.currentGame.renderer.ui.removeAttachment(this.placeholderTints[i]);

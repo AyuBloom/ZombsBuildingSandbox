@@ -379,7 +379,28 @@ class LocalNetworkAdapter extends _NetworkAdapter {
                             const oldX = this.goldstash.x;
                             const oldY = this.goldstash.y;
                             
-                            delete this.activeBuildingsByPos[oldX + ", " + oldY];
+                            // Temporarily remove GoldStash position to check for collisions with other buildings/resources
+                            const oldKey = oldX + ", " + oldY;
+                            const savedStash = this.activeBuildingsByPos[oldKey];
+                            delete this.activeBuildingsByPos[oldKey];
+
+                            const isValid = this.fixOccurredBuildingsByType(newX, newY, "GoldStash") && 
+                                            this.fixOccurredBuildingsForRssByType(newX, newY, "GoldStash");
+
+                            if (!isValid) {
+                                if (savedStash) {
+                                    this.activeBuildingsByPos[oldKey] = savedStash;
+                                }
+                                this.onMessage({
+                                    opcode: 9,
+                                    name: "Failure",
+                                    response: {
+                                        category: "Placement",
+                                        reason: "ObstructionsArePresent"
+                                    }
+                                });
+                                return;
+                            }
                             
                             this.goldstash.x = newX;
                             this.goldstash.y = newY;
