@@ -141,8 +141,8 @@ class LocalNetworkAdapter extends _NetworkAdapter {
             partyId: 1,
             petUid: 0,
             position: {
-                x: 24000 / 2,
-                y: 24000 / 2
+                x: window.customSpawnPoint ? window.customSpawnPoint.x : 24000 / 2,
+                y: window.customSpawnPoint ? window.customSpawnPoint.y : 24000 / 2
             },
             reconnectSecret: "",
             score: 0,
@@ -170,6 +170,7 @@ class LocalNetworkAdapter extends _NetworkAdapter {
         this.right = 0;
         this.left = 0;
         this.ticks = 0;
+        this.shift = 0;
 
         this.startMovementInterval();
 
@@ -324,6 +325,7 @@ class LocalNetworkAdapter extends _NetworkAdapter {
                 if (data.down === 0) this.down = 0;
                 if (data.right === 0) this.right = 0;
                 if (data.left === 0) this.left = 0;
+                if (data.shift !== undefined) this.shift = data.shift;
 
                 if (this.up && !this.down && !this.right && !this.left) this.yaw = 0;
                 if (this.down && !this.up && !this.right && !this.left) this.yaw = 180;
@@ -353,6 +355,81 @@ class LocalNetworkAdapter extends _NetworkAdapter {
                         this.playerdata.position.x = data.x;
                         this.playerdata.position.y = data.y;
                         this.markEntityDirty(this.playerUid);
+                    }
+                    return;
+                }
+                if (data.name == "OffsetGoldStash") {
+                    if (this.goldstash) {
+                        const dx = parseInt(data.x) || 0;
+                        const dy = parseInt(data.y) || 0;
+                        
+                        let newX = this.goldstash.x + dx;
+                        let newY = this.goldstash.y + dy;
+                        
+                        newX = Math.max(192, Math.min(23808, newX));
+                        newY = Math.max(192, Math.min(23808, newY));
+                        
+                        newX = Math.round(newX / 48) * 48;
+                        newY = Math.round(newY / 48) * 48;
+                        
+                        const actualDx = newX - this.goldstash.x;
+                        const actualDy = newY - this.goldstash.y;
+                        
+                        if (actualDx !== 0 || actualDy !== 0) {
+                            const oldX = this.goldstash.x;
+                            const oldY = this.goldstash.y;
+                            
+                            delete this.activeBuildingsByPos[oldX + ", " + oldY];
+                            
+                            this.goldstash.x = newX;
+                            this.goldstash.y = newY;
+                            this.activeBuildingsByPos[newX + ", " + newY] = this.goldstash;
+                            
+                            const stashEntity = this.entities.get(this.goldstash.uid);
+                            if (stashEntity) {
+                                stashEntity.position.x = newX;
+                                stashEntity.position.y = newY;
+                                this.markEntityDirty(this.goldstash.uid);
+                            }
+                            
+                            const buildingUids = Object.keys(this.buildings);
+                            for (let i = 0; i < buildingUids.length; i++) {
+                                const uid = Number(buildingUids[i]);
+                                const building = this.buildings[uid];
+                                if (!building || building.uid === this.goldstash.uid) continue;
+                                if (building.type === "Harvester") continue;
+                                
+                                const distX = Math.abs(building.x - newX);
+                                const distY = Math.abs(building.y - newY);
+                                if (distX >= 865 || distY >= 865) {
+                                    building.dead = 1;
+                                    this.onMessage({
+                                        name: 'LocalBuilding',
+                                        response: [building],
+                                        opcode: 9
+                                    });
+                                    --this.towersLength[building.type];
+                                    delete this.activeBuildingsByPos[building.x + ", " + building.y];
+                                    delete this.buildings[uid];
+                                    this.entities.delete(uid);
+                                    this.unchangedEntities.delete(uid);
+                                    this.dirtyEntities.delete(uid);
+                                }
+                            }
+                            
+                            this.rssNearStash = {};
+                            for (let i in this.rss) {
+                                if (Math.abs(this.rss[i].position.y - this.goldstash.y) < 1225 && Math.abs(this.rss[i].position.x - this.goldstash.x) < 1225) {
+                                    this.rssNearStash[i] = this.rss[i];
+                                }
+                            }
+                            
+                            this.onMessage({
+                                name: 'LocalBuilding',
+                                response: [this.goldstash],
+                                opcode: 9
+                            });
+                        }
                     }
                     return;
                 }
@@ -547,7 +624,7 @@ class LocalNetworkAdapter extends _NetworkAdapter {
 
             // 16.6667ms is the target duration for a single 60 FPS tick
             const factor = dt / 16.6667;
-            const _speed = 10;
+            const _speed = this.shift ? 30 : 10;
             const speed = Math.min(45, _speed) * factor;
             const oldX = this.playerdata.position.x;
             const oldY = this.playerdata.position.y;

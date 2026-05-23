@@ -20,7 +20,46 @@ class UiIntro extends _UiComponent {
             this.ctx = this.canvas.getContext("2d");
             this.canvas.addEventListener("mousemove", this.onCanvasMouseMove.bind(this));
             this.canvas.addEventListener("mouseleave", this.onCanvasMouseLeave.bind(this));
+            this.canvas.addEventListener("click", this.onCanvasClick.bind(this));
+
+            // Create floating magnifier DOM and Canvas elements
+            this.magnifierPopup = document.createElement("div");
+            this.magnifierPopup.id = "magnifier-popup";
+            this.magnifierCanvas = document.createElement("canvas");
+            this.magnifierCanvas.width = 220;
+            this.magnifierCanvas.height = 220;
+            this.magnifierPopup.appendChild(this.magnifierCanvas);
+            this.canvas.parentNode.parentNode.appendChild(this.magnifierPopup);
+
+            // Create offscreen canvas for O(1) rendering cache
+            this.offscreenCanvas = document.createElement("canvas");
+            this.offscreenCanvas.width = this.canvas.width;
+            this.offscreenCanvas.height = this.canvas.height;
+            this.offscreenCtx = this.offscreenCanvas.getContext("2d");
+            this.lastServerId = null;
         }
+
+        // Preload real resource SVGs
+        this.treeImg = new Image();
+        this.treeImg.src = "asset/image/ui/entities/entities-tree.svg";
+        this.treeImg.onload = () => {
+            this.preRenderCurrentServer();
+            this.updatePreview();
+        };
+
+        this.stoneImg = new Image();
+        this.stoneImg.src = "asset/image/ui/entities/entities-stone.svg";
+        this.stoneImg.onload = () => {
+            this.preRenderCurrentServer();
+            this.updatePreview();
+        };
+
+        this.campImg = new Image();
+        this.campImg.src = "asset/image/entity/neutral-camp/neutral-camp-base.svg";
+        this.campImg.onload = () => {
+            this.preRenderCurrentServer();
+            this.updatePreview();
+        };
 
         this.serverElem.addEventListener("change", this.onServerChange.bind(this));
         this.componentElem.addEventListener("wheel", this.onWheel.bind(this));
@@ -84,64 +123,238 @@ class UiIntro extends _UiComponent {
         const info = window.serverspots[serverId].spotinfo || "825 entities";
         if (this.statsElem) this.statsElem.innerText = info;
 
-        this.drawSpots(serverId);
-    }
-    drawSpots(serverId) {
-        if (!this.ctx || !this.canvas) return;
-        const ctx = this.ctx;
-        const width = this.canvas.width;
-        const height = this.canvas.height;
-        ctx.clearRect(0, 0, width, height);
+        const spots = window.decodeSpotJSON(window.serverspots[serverId].spotEncoded);
+        if (this.lastServerId !== serverId) {
+            this.lastServerId = serverId;
+            this.preRenderMap(spots);
+        }
 
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
-        ctx.lineWidth = 1;
+        this.drawSpots(serverId, spots);
+    }
+    preRenderCurrentServer() {
+        const serverId = this.serverElem ? this.serverElem.value : null;
+        if (serverId && window.serverspots && window.serverspots[serverId] && window.serverspots[serverId].spotEncoded) {
+            const spots = window.decodeSpotJSON(window.serverspots[serverId].spotEncoded);
+            this.preRenderMap(spots);
+        }
+    }
+    preRenderMap(spots) {
+        if (!this.offscreenCtx || !this.offscreenCanvas) return;
+        const octx = this.offscreenCtx;
+        const width = this.offscreenCanvas.width;
+        const height = this.offscreenCanvas.height;
+        octx.clearRect(0, 0, width, height);
+
+        // Draw grid lines
+        octx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+        octx.lineWidth = 1;
         const gridSize = 26;
         for (let x = 0; x <= width; x += gridSize) {
-            ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, height);
-            ctx.stroke();
+            octx.beginPath();
+            octx.moveTo(x, 0);
+            octx.lineTo(x, height);
+            octx.stroke();
         }
         for (let y = 0; y <= height; y += gridSize) {
-            ctx.beginPath();
-            ctx.moveTo(0, y);
-            ctx.lineTo(width, y);
-            ctx.stroke();
+            octx.beginPath();
+            octx.moveTo(0, y);
+            octx.lineTo(width, y);
+            octx.stroke();
         }
 
-        const spots = window.decodeSpotJSON(window.serverspots[serverId].spotEncoded);
         const scale = width / 24000;
+        const treeSize = 192 * scale;
+        const stoneSize = 144 * scale;
+        const campSize = 144 * scale;
 
+        // Render resource entities
         for (let id in spots) {
             const spot = spots[id];
             const px = spot.position.x * scale;
             const py = spot.position.y * scale;
 
             if (spot.model === "Tree") {
-                ctx.fillStyle = "#4e6437";
-                ctx.beginPath();
-                ctx.arc(px, py, 1, 0, 2 * Math.PI);
-                ctx.fill();
+                if (this.treeImg && this.treeImg.complete) {
+                    octx.drawImage(this.treeImg, px - treeSize / 2, py - treeSize / 2, treeSize, treeSize);
+                } else {
+                    octx.fillStyle = "#4e6437";
+                    octx.beginPath();
+                    octx.arc(px, py, treeSize / 2, 0, 2 * Math.PI);
+                    octx.fill();
+                }
             } else if (spot.model === "Stone") {
-                ctx.fillStyle = "#b3b3b3";
-                ctx.beginPath();
-                ctx.arc(px, py, 1, 0, 2 * Math.PI);
-                ctx.fill();
+                if (this.stoneImg && this.stoneImg.complete) {
+                    octx.drawImage(this.stoneImg, px - stoneSize / 2, py - stoneSize / 2, stoneSize, stoneSize);
+                } else {
+                    octx.fillStyle = "#b3b3b3";
+                    octx.beginPath();
+                    octx.arc(px, py, stoneSize / 2, 0, 2 * Math.PI);
+                    octx.fill();
+                }
             } else if (spot.model === "NeutralCamp") {
-                ctx.fillStyle = "#ba363f";
-                ctx.beginPath();
-                ctx.arc(px, py, 1, 0, 2 * Math.PI);
-                ctx.fill();
+                if (this.campImg && this.campImg.complete) {
+                    octx.drawImage(this.campImg, px - campSize / 2, py - campSize / 2, campSize, campSize);
+                } else {
+                    octx.fillStyle = "#ba363f";
+                    octx.beginPath();
+                    octx.arc(px, py, campSize / 2, 0, 2 * Math.PI);
+                    octx.fill();
+                }
             }
         }
+    }
+    drawSpots(serverId, spots) {
+        if (!this.ctx || !this.canvas) return;
+        const ctx = this.ctx;
+        const width = this.canvas.width;
+        const height = this.canvas.height;
+        ctx.clearRect(0, 0, width, height);
+
+        // Draw static pre-rendered map in one quick O(1) step
+        if (this.offscreenCanvas) {
+            ctx.drawImage(this.offscreenCanvas, 0, 0);
+        }
+
+        const scale = width / 24000;
+
+        // Draw Player Spawn Indicator
+        const spawnX = window.customSpawnPoint ? window.customSpawnPoint.x : 12000;
+        const spawnY = window.customSpawnPoint ? window.customSpawnPoint.y : 12000;
+        const sx = spawnX * scale;
+        const sy = spawnY * scale;
 
         ctx.fillStyle = "#3498db";
         ctx.beginPath();
-        ctx.arc(width / 2, height / 2, 5, 0, 2 * Math.PI);
+        ctx.arc(sx, sy, 5, 0, 2 * Math.PI);
         ctx.fill();
         ctx.strokeStyle = "#ffffff";
         ctx.lineWidth = 1.5;
         ctx.stroke();
+
+        // Render zoomed preview on floating magnifier canvas
+        if (this.hovering && this.hoverX !== undefined && this.hoverY !== undefined && this.magnifierCanvas) {
+            const mctx = this.magnifierCanvas.getContext("2d");
+            const cx = this.hoverX;
+            const cy = this.hoverY;
+
+            mctx.fillStyle = "#16161a";
+            mctx.fillRect(0, 0, 220, 220);
+
+            // Compute zoom factor so visible diameter is exactly 1920 game units
+            const mapVisibleSizeGameUnits = 1920;
+            const mapVisibleSizeMainCanvasPixels = mapVisibleSizeGameUnits * scale;
+            const zoomFactor = 220 / mapVisibleSizeMainCanvasPixels;
+
+            mctx.save();
+            // Center the zoom transform at the center of the magnifier context
+            mctx.translate(110, 110);
+            mctx.scale(zoomFactor, zoomFactor);
+            mctx.translate(-cx, -cy);
+
+            // Zoomed Grid Lines
+            mctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+            mctx.lineWidth = 1 / zoomFactor;
+            const gridSize = 26;
+            for (let x = 0; x <= width; x += gridSize) {
+                mctx.beginPath();
+                mctx.moveTo(x, 0);
+                mctx.lineTo(x, height);
+                mctx.stroke();
+            }
+            for (let y = 0; y <= height; y += gridSize) {
+                mctx.beginPath();
+                mctx.moveTo(0, y);
+                mctx.lineTo(width, y);
+                mctx.stroke();
+            }
+
+            // Zoomed Spots with O(1) viewport culling logic
+            const gameX = Math.round((cx / width) * 24000);
+            const gameY = Math.round((cy / height) * 24000);
+            const margin = 1100; // 960 game units radius + padding margin
+
+            const treeSize = 192 * scale;
+            const stoneSize = 144 * scale;
+            const campSize = 144 * scale;
+
+            for (let id in spots) {
+                const spot = spots[id];
+
+                // Viewport Culling Check: Skip drawing if resource is outside the zoomed viewport box
+                if (Math.abs(spot.position.x - gameX) > margin || Math.abs(spot.position.y - gameY) > margin) {
+                    continue;
+                }
+
+                const px = spot.position.x * scale;
+                const py = spot.position.y * scale;
+
+                if (spot.model === "Tree") {
+                    if (this.treeImg && this.treeImg.complete) {
+                        mctx.drawImage(this.treeImg, px - treeSize / 2, py - treeSize / 2, treeSize, treeSize);
+                    } else {
+                        mctx.fillStyle = "#6ca049";
+                        mctx.beginPath();
+                        mctx.arc(px, py, treeSize / 2, 0, 2 * Math.PI);
+                        mctx.fill();
+                    }
+                } else if (spot.model === "Stone") {
+                    if (this.stoneImg && this.stoneImg.complete) {
+                        mctx.drawImage(this.stoneImg, px - stoneSize / 2, py - stoneSize / 2, stoneSize, stoneSize);
+                    } else {
+                        mctx.fillStyle = "#d3d3d3";
+                        mctx.beginPath();
+                        mctx.arc(px, py, stoneSize / 2, 0, 2 * Math.PI);
+                        mctx.fill();
+                    }
+                } else if (spot.model === "NeutralCamp") {
+                    if (this.campImg && this.campImg.complete) {
+                        mctx.drawImage(this.campImg, px - campSize / 2, py - campSize / 2, campSize, campSize);
+                    } else {
+                        mctx.fillStyle = "#ff4d5a";
+                        mctx.beginPath();
+                        mctx.arc(px, py, campSize / 2, 0, 2 * Math.PI);
+                        mctx.fill();
+                    }
+                }
+            }
+
+            // Zoomed Player Spawn Indicator
+            mctx.fillStyle = "#3498db";
+            mctx.beginPath();
+            mctx.arc(sx, sy, 1, 0, 2 * Math.PI);
+            mctx.fill();
+            mctx.strokeStyle = "#ffffff";
+            mctx.lineWidth = 0.5;
+            mctx.stroke();
+
+            mctx.restore();
+
+            // Centered Crosshair
+            mctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+            mctx.lineWidth = 1.2;
+            mctx.beginPath();
+            mctx.moveTo(110 - 6, 110);
+            mctx.lineTo(110 + 6, 110);
+            mctx.moveTo(110, 110 - 6);
+            mctx.lineTo(110, 110 + 6);
+            mctx.stroke();
+        }
+    }
+    onCanvasClick(event) {
+        if (!this.canvas) return;
+        const rect = this.canvas.getBoundingClientRect();
+        const cx = event.clientX - rect.left;
+        const cy = event.clientY - rect.top;
+
+        const gameX = Math.round((cx / this.canvas.width) * 24000);
+        const gameY = Math.round((cy / this.canvas.height) * 24000);
+
+        // Clamp coordinates
+        const clampedX = Math.max(0, Math.min(24000, gameX));
+        const clampedY = Math.max(0, Math.min(24000, gameY));
+
+        window.customSpawnPoint = { x: clampedX, y: clampedY };
+        this.updatePreview();
     }
     onCanvasMouseMove(event) {
         if (!this.canvas || !this.coordsElem) return;
@@ -154,12 +367,34 @@ class UiIntro extends _UiComponent {
 
         this.coordsElem.innerText = "X: " + gameX + " | Y: " + gameY;
         this.coordsElem.style.color = "#eee";
+
+        this.hovering = true;
+        this.hoverX = cx;
+        this.hoverY = cy;
+
+        // Position the floating magnifier popup centered on the cursor
+        if (this.magnifierPopup) {
+            const parentRect = this.canvas.parentNode.parentNode.getBoundingClientRect(); // .hud-intro-preview
+            const xInParent = event.clientX - parentRect.left;
+            const yInParent = event.clientY - parentRect.top;
+
+            this.magnifierPopup.style.display = "block";
+            this.magnifierPopup.style.left = (xInParent - 110) + "px";
+            this.magnifierPopup.style.top = (yInParent - 110) + "px";
+        }
+
+        this.updatePreview();
     }
     onCanvasMouseLeave(event) {
+        this.hovering = false;
+        if (this.magnifierPopup) {
+            this.magnifierPopup.style.display = "none";
+        }
         if (this.coordsElem) {
-            this.coordsElem.innerText = "Hover map to view coordinates";
+            this.coordsElem.innerText = "Hover map to open a zoomed in view";
             this.coordsElem.style.color = "rgba(255, 255, 255, 0.5)";
         }
+        this.updatePreview();
     }
     onSubmitClick(event) {
         var This = this;

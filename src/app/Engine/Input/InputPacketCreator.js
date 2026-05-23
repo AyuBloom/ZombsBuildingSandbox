@@ -43,6 +43,9 @@ class InputPacketCreator {
                     case 39:
                         network.sendInput({ right: 1, left: 0 });
                         break;
+                    case 16:
+                        network.sendInput({ shift: 1 });
+                        break;
                     case 32:
                         network.sendInput({ space: 1 });
                         break;
@@ -74,6 +77,9 @@ class InputPacketCreator {
                     case 68:
                     case 39:
                         network.sendInput({ right: 0 });
+                        break;
+                    case 16:
+                        network.sendInput({ shift: 0 });
                         break;
                     case 32:
                         network.sendInput({ space: 0 });

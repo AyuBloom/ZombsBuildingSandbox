@@ -2,6 +2,7 @@ import _Game from "../../Engine/Game/Game";
 import _UiComponent from "./UiComponent";
 import _TextEntity from "../../Engine/Entity/TextEntity";
 import _PlacementIndicatorModel from "../Models/PlacementIndicatorModel";
+import _RangeIndicatorModel from "../Models/RangeIndicatorModel";
 var Debugger = require("debug");
 var debug = Debugger("Game:Ui/UiPlacementOverlay");
 var BuildingDirection = BuildingDirection || {};
@@ -27,6 +28,8 @@ class UiPlacementOverlay extends _UiComponent {
         this.placeholderText.setLetterSpacing(1);
         this.placeholderText.setAlpha(0);
         this.placeholderText.setPosition(-1000, -1000);
+        this.isOffsetting = false;
+        this.rangeIndicator = null;
         _Game.currentGame.renderer.ui.addAttachment(this.placeholderText);
         _Game.currentGame.renderer.on("cameraUpdate", this.onCameraUpdate.bind(this));
     }
@@ -77,9 +80,39 @@ class UiPlacementOverlay extends _UiComponent {
                 y: cellAverages.y * cellSize + cellSize / 2
             };
             var uiPos = _Game.currentGame.renderer.worldToUi(gridPos.x, gridPos.y);
+
+            if (!this.rangeIndicator) {
+                var maxStashDistance = this.maxStashDistance;
+                if (this.buildingId === 'GoldStash') {
+                    this.rangeIndicator = new _RangeIndicatorModel({
+                        width: maxStashDistance * cellSize * 2,
+                        height: maxStashDistance * cellSize * 2,
+                        innerColor: { r: 0xff, g: 0xff, b: 0xff },
+                        borderColor: { r: 0xdd, g: 0xdd, b: 0xdd }
+                    });
+                } else if (schemaData.rangeTiers) {
+                    this.rangeIndicator = new _RangeIndicatorModel({
+                        isCircular: true,
+                        radius: schemaData.rangeTiers[0] * 0.57071,
+                        innerColor: { r: 0xff, g: 0xff, b: 0xff },
+                        borderColor: { r: 0xdd, g: 0xdd, b: 0xdd }
+                    });
+                }
+                if (this.rangeIndicator) {
+                    _Game.currentGame.renderer.ground.addAttachment(this.rangeIndicator);
+                }
+            }
+
             this.placeholderEntity.setPosition(uiPos.x, uiPos.y);
             this.placeholderText.setPosition(uiPos.x, uiPos.y - 110);
+            if (this.rangeIndicator) {
+                this.rangeIndicator.setPosition(gridPos.x, gridPos.y);
+            }
         }
+    }
+    startOffsettingStash() {
+        this.isOffsetting = true;
+        this.startPlacing("GoldStash");
     }
     startPlacing(buildingId) {
         if (this.buildingId) {
@@ -161,7 +194,7 @@ class UiPlacementOverlay extends _UiComponent {
             }
             var buildingSchema = this.ui.getBuildingSchema();
             var schemaData = buildingSchema[this.buildingId];
-            if (schemaData.built >= schemaData.limit) {
+            if (!this.isOffsetting && schemaData.built >= schemaData.limit) {
                 this.ui.components.PopupOverlay.showHint("You can't place any more of this type of tower.", 4000);
                 this.cancelPlacing();
                 return false;
@@ -192,6 +225,60 @@ class UiPlacementOverlay extends _UiComponent {
                 x: cellAverages.x * cellSize + cellSize / 2,
                 y: cellAverages.y * cellSize + cellSize / 2
             };
+
+            if (this.isOffsetting) {
+                var This = this;
+                var popupOverlay = this.ui.components.PopupOverlay;
+                var stash = this.goldStash;
+                if (!stash) return false;
+
+                var dx = gridPos.x - stash.x;
+                var dy = gridPos.y - stash.y;
+
+                if (dx === 0 && dy === 0) {
+                    popupOverlay.showHint("Offset cannot be 0,0.");
+                    this.cancelPlacing();
+                    return false;
+                }
+
+                // Align offsets to grid increments of 48
+                dx = Math.round(dx / 48) * 48;
+                dy = Math.round(dy / 48) * 48;
+
+                var buildings = this.ui.getBuildings();
+                var outOfRangeCount = 0;
+                var newX = stash.x + dx;
+                var newY = stash.y + dy;
+
+                for (var uid in buildings) {
+                    var building = buildings[uid];
+                    if (building.uid === stash.uid || building.type === "Harvester") continue;
+
+                    var distX = Math.abs(building.x - newX);
+                    var distY = Math.abs(building.y - newY);
+                    if (distX >= 865 || distY >= 865) {
+                        outOfRangeCount++;
+                    }
+                }
+
+                var warningMsg = "Are you sure you want to offset the GoldStash by " + dx + ", " + dy + "?";
+                if (outOfRangeCount > 0) {
+                    warningMsg = "WARNING: Offsetting by " + dx + ", " + dy + " will destroy " + outOfRangeCount + " building" + (outOfRangeCount > 1 ? "s" : "") + " that fall outside the new stash range. Proceed?";
+                }
+
+                this.cancelPlacing();
+
+                popupOverlay.showConfirmation(warningMsg, 30000, function() {
+                    debug("Sending OffsetGoldStash request with offset: %d, %d", dx, dy);
+                    _Game.currentGame.network.sendRpc({
+                        name: "OffsetGoldStash",
+                        x: dx,
+                        y: dy
+                    });
+                });
+                return true;
+            }
+
             _Game.currentGame.network.sendRpc({
                 name: "MakeBuilding",
                 x: gridPos.x,
@@ -209,6 +296,10 @@ class UiPlacementOverlay extends _UiComponent {
         if (this.buildingId) {
             debug("Cancelling placing building: %s", this.buildingId);
             _Game.currentGame.renderer.ui.removeAttachment(this.placeholderEntity);
+            if (this.rangeIndicator) {
+                _Game.currentGame.renderer.ground.removeAttachment(this.rangeIndicator);
+                this.rangeIndicator = null;
+            }
             for (var i in this.placeholderTints) {
                 _Game.currentGame.renderer.ui.removeAttachment(this.placeholderTints[i]);
             }
@@ -221,6 +312,7 @@ class UiPlacementOverlay extends _UiComponent {
             this.placeholderTints = [];
             this.borderTints = [];
             this.buildingId = null;
+            this.isOffsetting = false;
         }
     }
     cycleDirection() {
@@ -246,6 +338,9 @@ class UiPlacementOverlay extends _UiComponent {
             if (networkEntity) {
                 var entityTick = networkEntity.getTargetTick();
                 if (entityTick) {
+                    if (this.isOffsetting && entityTick.model === "GoldStash") {
+                        continue;
+                    }
                     buildings += entityTick.entityClass !== "Projectile" ? 1 : 0;
                 }
             }

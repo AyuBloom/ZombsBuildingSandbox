@@ -338,7 +338,7 @@ class Ui extends EventEmitter {
         this.isMouseDown = false;
         if (!this.components.Intro.isVisible() && !this.components.Reconnect.isVisible() && !this.components.Respawn.isVisible()) {
             menuSettings.hide();
-            if (event.altKey && this.isGameWorldEvent(event)) {
+            if ((event.metaKey || event.altKey) && this.isGameWorldEvent(event)) {
                 this.teleportToWorldPosition(event.clientX, event.clientY);
                 return;
             }

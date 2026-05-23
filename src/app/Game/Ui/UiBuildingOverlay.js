@@ -120,20 +120,6 @@ class UiBuildingOverlay extends _UiComponent {
             } else {
                 this.statsElem.innerHTML = "";
             }
-            if (this.buildingId === "Harvester") {
-                var depositCost = Math.floor(entityTick.depositMax / 10);
-                var isAlmostFull = entityTick.depositMax - entityTick.deposit < depositCost;
-                if (isAlmostFull) {
-                    this.depositElem.classList.add("is-disabled");
-                } else {
-                    this.depositElem.classList.remove("is-disabled");
-                }
-                if (this.shouldUpgradeAll) {
-                    this.depositElem.innerHTML = "Refuel All <small>(" + (depositCost * buildingsToUpgrade).toLocaleString() + " gold)</small>";
-                } else {
-                    this.depositElem.innerHTML = "Refuel <small>(" + depositCost.toLocaleString() + " gold)</small>";
-                }
-            }
             if (canUpgrade) {
                 this.upgradeElem.classList.remove("is-disabled");
             } else {
@@ -145,6 +131,7 @@ class UiBuildingOverlay extends _UiComponent {
                 this.upgradeElem.innerHTML = "Upgrade" + (costsHtml ? " <small>(" + costsHtml + ")</small>" : "");
             }
             if (this.buildingId == "GoldStash") {
+                this.offsetElem.style.display = "block";
                 if (this.ui.getPlayerPartyCanSell()) {
                     this.sellElem.classList.remove("is-disabled");
                     this.sellElem.innerHTML = "Sell";
@@ -152,16 +139,19 @@ class UiBuildingOverlay extends _UiComponent {
                     this.sellElem.classList.add("is-disabled");
                     this.sellElem.innerHTML = "Need Permission to Sell";
                 }
-            } else if (this.ui.getPlayerPartyCanSell()) {
-                this.sellElem.classList.remove("is-disabled");
-                if (this.shouldUpgradeAll) {
-                    this.sellElem.innerHTML = "Sell All";
-                } else {
-                    this.sellElem.innerHTML = "Sell";
-                }
             } else {
-                this.sellElem.classList.add("is-disabled");
-                this.sellElem.innerHTML = "Need Permission to Sell";
+                this.offsetElem.style.display = "none";
+                if (this.ui.getPlayerPartyCanSell()) {
+                    this.sellElem.classList.remove("is-disabled");
+                    if (this.shouldUpgradeAll) {
+                        this.sellElem.innerHTML = "Sell All";
+                    } else {
+                        this.sellElem.innerHTML = "Sell";
+                    }
+                } else {
+                    this.sellElem.classList.add("is-disabled");
+                    this.sellElem.innerHTML = "Need Permission to Sell";
+                }
             }
             this.componentElem.style.left = screenPos.x - this.componentElem.offsetWidth / 2 + "px";
             this.componentElem.style.top = screenPos.y - entityHeight - this.componentElem.offsetHeight - 20 + "px";
@@ -200,22 +190,16 @@ class UiBuildingOverlay extends _UiComponent {
             });
             _Game.currentGame.renderer.ground.addAttachment(this.rangeIndicator);
         }
-        this.componentElem.innerHTML = "<div class=\"hud-tooltip-building\">\n            <h2>" + schemaData.name + "</h2>\n            <h3>Tier <span class=\"hud-building-tier\">" + this.buildingTier + "</span> Building</h3>\n            <div class=\"hud-tooltip-health\">\n                <span class=\"hud-tooltip-health-bar\" style=\"width:100%;\"></span>\n            </div>\n            <div class=\"hud-tooltip-body\">\n                <div class=\"hud-building-stats\"></div>\n                <p class=\"hud-building-actions\">\n                    <span class=\"hud-building-dual-btn\">\n                        <a class=\"btn btn-purple hud-building-deposit\">Refuel</a>\n                        <a class=\"btn btn-gold hud-building-collect\">Collect</a>\n                    </span>\n                    <a class=\"btn btn-green hud-building-upgrade\">Upgrade</a>\n                    <a class=\"btn btn-red hud-building-sell\">Sell</a>\n                </p>\n            </div>\n        </div>";
+        this.componentElem.innerHTML = "<div class=\"hud-tooltip-building\">\n            <h2>" + schemaData.name + "</h2>\n            <h3>Tier <span class=\"hud-building-tier\">" + this.buildingTier + "</span> Building</h3>\n            <div class=\"hud-tooltip-health\">\n                <span class=\"hud-tooltip-health-bar\" style=\"width:100%;\"></span>\n            </div>\n            <div class=\"hud-tooltip-body\">\n                <div class=\"hud-building-stats\"></div>\n                <p class=\"hud-building-actions\">\n                    <a class=\"btn btn-green hud-building-upgrade\">Upgrade</a>\n                    <a class=\"btn btn-blue hud-building-offset\" style=\"display:none;\">Offset</a>\n                    <a class=\"btn btn-red hud-building-sell\">Sell</a>\n                </p>\n            </div>\n        </div>";
         this.tierElem = this.componentElem.querySelector(".hud-building-tier");
         this.healthBarElem = this.componentElem.querySelector(".hud-tooltip-health-bar");
         this.statsElem = this.componentElem.querySelector(".hud-building-stats");
         this.actionsElem = this.componentElem.querySelector(".hud-building-actions");
-        this.depositElem = this.componentElem.querySelector(".hud-building-deposit");
-        this.dualBtnElem = this.componentElem.querySelector(".hud-building-dual-btn");
-        this.collectElem = this.componentElem.querySelector(".hud-building-collect");
         this.upgradeElem = this.componentElem.querySelector(".hud-building-upgrade");
+        this.offsetElem = this.componentElem.querySelector(".hud-building-offset");
         this.sellElem = this.componentElem.querySelector(".hud-building-sell");
-        if (this.buildingId !== "Harvester") {
-            this.dualBtnElem.style.display = "none";
-        }
-        this.depositElem.addEventListener("click", this.depositIntoBuilding.bind(this));
-        this.collectElem.addEventListener("click", this.collectFromBuilding.bind(this));
         this.upgradeElem.addEventListener("click", this.upgradeBuilding.bind(this));
+        this.offsetElem.addEventListener("click", this.offsetGoldStash.bind(this));
         this.sellElem.addEventListener("click", this.sellBuilding.bind(this));
         this.show();
         this.update();
@@ -236,52 +220,22 @@ class UiBuildingOverlay extends _UiComponent {
             this.hide();
         }
     }
-    depositIntoBuilding() {
-        if (this.buildingId) {
-            var depositCost = Math.floor(_Game.currentGame.world.getEntityByUid(this.buildingUid).getTargetTick().depositMax / 10);
-            if (this.shouldUpgradeAll) {
-                var buildings = this.ui.getBuildings();
-                debug("Sending deposit request for all buildings of type: %s, %d", this.buildingId, depositCost);
-                for (var uid in buildings) {
-                    if (buildings[uid].type === this.buildingId) {
-                        _Game.currentGame.network.sendRpc({
-                            name: "AddDepositToHarvester",
-                            uid: parseInt(uid),
-                            deposit: depositCost
-                        });
-                    }
-                }
-            } else {
-                debug("Sending deposit request for building: %d, %d", this.buildingUid, depositCost);
-                _Game.currentGame.network.sendRpc({
-                    name: "AddDepositToHarvester",
-                    uid: this.buildingUid,
-                    deposit: depositCost
-                });
-            }
-        }
-    }
-    collectFromBuilding() {
-        if (this.buildingId) {
-            debug("Sending collect request for building: %d", this.buildingUid);
-            _Game.currentGame.network.sendRpc({
-                name: "CollectHarvester",
-                uid: this.buildingUid
-            });
-        }
-    }
     upgradeBuilding() {
         if (this.buildingUid) {
             if (this.shouldUpgradeAll) {
                 var buildings = this.ui.getBuildings();
+                var uidsToUpgrade = [];
                 debug("Sending upgrade request for all buildings of type: %s, %d", this.buildingId, this.buildingTier);
                 for (var uid in buildings) {
                     if (buildings[uid].type === this.buildingId && buildings[uid].tier === this.buildingTier) {
-                        _Game.currentGame.network.sendRpc({
-                            name: "UpgradeBuilding",
-                            uid: parseInt(uid)
-                        });
+                        uidsToUpgrade.push(parseInt(uid));
                     }
+                }
+                for (var i = 0; i < uidsToUpgrade.length; i++) {
+                    _Game.currentGame.network.sendRpc({
+                        name: "UpgradeBuilding",
+                        uid: uidsToUpgrade[i]
+                    });
                 }
             } else {
                 debug("Sending upgrade request for building: %d", this.buildingUid);
@@ -354,13 +308,6 @@ class UiBuildingOverlay extends _UiComponent {
             if (this.healthBarElem) {
                 this.healthBarElem.style.width = healthPercentage + "%";
             }
-            if (this.depositElem && this.buildingId === "Harvester") {
-                if (entityTick.depositMax - entityTick.deposit < entityTick.depositMax / 10) {
-                    this.depositElem.classList.add("is-disabled");
-                } else {
-                    this.depositElem.classList.remove("is-disabled");
-                }
-            }
         }
     }
     onCameraUpdate() {
@@ -368,6 +315,13 @@ class UiBuildingOverlay extends _UiComponent {
     }
     onBuildingsUpdate() {
         this.update();
+    }
+    offsetGoldStash() {
+        if (this.buildingUid && this.buildingId === "GoldStash") {
+            debug("Initiating placement-based GoldStash offset.");
+            this.stopWatching();
+            this.ui.components.PlacementOverlay.startOffsettingStash();
+        }
     }
     onBuildingSchemaUpdate() {
         this.update();

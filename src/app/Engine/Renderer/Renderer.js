@@ -254,17 +254,12 @@ class Renderer extends EventEmitter {
         this.viewport.height = this.renderer.height / this.scale + this.viewportPadding * 2;
     }
     onWheel(event) {
-        if (event.deltaY > 0) {
-            if (this.magnification < 50) {
-                this.magnification += 0.5;
-            }
-        } else if (this.magnification > 1) {
-            this.magnification -= 0.5;
-        }
+        if (event.target.closest('.hud-menu')) return;
+        this.magnification = Math.max(1, Math.min(50, this.magnification * (1.15 ** Math.sign(event.deltaY))));
     }
     animateZoom() {
         if (Math.abs(this.currentMagnification - this.magnification) > 0.001) {
-            this.currentMagnification += (this.magnification - this.currentMagnification) * 0.1;
+            this.currentMagnification += (this.magnification - this.currentMagnification) * 0.15;
             this.onWindowResize();
         } else if (this.currentMagnification != this.magnification) {
             this.currentMagnification = this.magnification;

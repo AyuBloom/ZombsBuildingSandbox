@@ -253,7 +253,8 @@ class World {
             width: bounds.width,
             height: bounds.height,
             innerColor: bounds.color,
-            borderColor: bounds.color
+            borderColor: bounds.color,
+            lineWidth: 0,
         });
         indicator.setPosition(bounds.x, bounds.y);
         indicator.setVisible(!!_Game.currentGame.ui.getOption("obstacleIndicators"));
