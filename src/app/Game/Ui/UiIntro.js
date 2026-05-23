@@ -73,6 +73,44 @@ class UiIntro extends _UiComponent {
         this.checkForPartyInvitation();
         this.updateServerOptions();
         this.updatePreview();
+        this.fetchLastUpdated();
+    }
+    fetchLastUpdated() {
+        const lastUpdatedElem = this.componentElem.querySelector("#last-updated");
+        if (!lastUpdatedElem) return;
+
+        fetch("https://api.github.com/repos/AyuBloom/ZombsBuildingSandbox/commits?per_page=1")
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("HTTP error " + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data && data.length > 0) {
+                    const commit = data[0].commit;
+                    const commitDate = new Date(commit.author.date);
+                    
+                    const formattedDate = commitDate.toLocaleDateString(undefined, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    
+                    lastUpdatedElem.textContent = `Last Updated: ${formattedDate}`;
+                    lastUpdatedElem.href = `https://github.com/AyuBloom/ZombsBuildingSandbox/commit/${data[0].sha}`;
+                    lastUpdatedElem.title = commit.message;
+                } else {
+                    lastUpdatedElem.textContent = "Last Updated: Unknown";
+                }
+            })
+            .catch(err => {
+                console.error("Failed to fetch last updated commit info:", err);
+                lastUpdatedElem.textContent = "Last Updated: View commits";
+                lastUpdatedElem.href = "https://github.com/AyuBloom/ZombsBuildingSandbox/commits";
+            });
     }
     updateServerOptions() {
         var options = this.serverElem.querySelectorAll("option");
