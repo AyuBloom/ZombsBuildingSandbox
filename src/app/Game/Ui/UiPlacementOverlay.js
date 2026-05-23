@@ -332,7 +332,6 @@ class UiPlacementOverlay extends _UiComponent {
         if (!entities) {
             return true;
         }
-        var buildings = 0;
         for (var uid in entities) {
             var networkEntity = world.getEntityByUid(parseInt(uid));
             if (networkEntity) {
@@ -341,12 +340,34 @@ class UiPlacementOverlay extends _UiComponent {
                     if (this.isOffsetting && entityTick.model === "GoldStash") {
                         continue;
                     }
-                    buildings += entityTick.entityClass !== "Projectile" ? 1 : 0;
+                    if (entityTick.entityClass === "Projectile") {
+                        continue;
+                    }
+                    if (entityTick.model === "Tree" || entityTick.model === "Stone" || entityTick.model === "NeutralCamp") {
+                        var radius = 60;
+                        if (entityTick.model === "Tree") {
+                            radius = 70;
+                        } else if (entityTick.model === "Stone") {
+                            radius = 50;
+                        }
+                        var cx = entityTick.position.x;
+                        var cy = entityTick.position.y;
+                        var minX = cellPos.x * cellSize;
+                        var maxX = minX + cellSize;
+                        var minY = cellPos.y * cellSize;
+                        var maxY = minY + cellSize;
+                        var closestX = Math.max(minX, Math.min(cx, maxX));
+                        var closestY = Math.max(minY, Math.min(cy, maxY));
+                        var distX = cx - closestX;
+                        var distY = cy - closestY;
+                        if (distX * distX + distY * distY < radius * radius) {
+                            return true;
+                        }
+                    } else {
+                        return true;
+                    }
                 }
             }
-        }
-        if (buildings > 0) {
-            return true;
         }
         var wallDistanceX = Math.min(cellPos.x, world.entityGrid.getColumns() - 1 - cellPos.x);
         var wallDistanceY = Math.min(cellPos.y, world.entityGrid.getRows() - 1 - cellPos.y);

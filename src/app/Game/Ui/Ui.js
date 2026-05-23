@@ -45,6 +45,9 @@ class Ui extends EventEmitter {
         this.isWavePaused = false;
         this.options = _Game.currentGame.options || {};
         this.options.obstacleIndicators = !!this.options.obstacleIndicators;
+        this.options.showResourceCollisions = !!this.options.showResourceCollisions;
+        this.options.showGroupingGrid = !!this.options.showGroupingGrid;
+        this.options.showGround = this.options.showGround === undefined ? true : !!this.options.showGround;
         this.buildingSchema = JSON.parse(JSON.stringify(require("../buildings")));
         this.itemSchema = JSON.parse(JSON.stringify(require("../items")));
         this.spellSchema = JSON.parse(JSON.stringify(require("../spells")));
@@ -167,6 +170,15 @@ class Ui extends EventEmitter {
         this.options[key] = value;
         if (key === "obstacleIndicators") {
             _Game.currentGame.world.setObstacleIndicatorsVisible(value);
+        }
+        if (key === "showResourceCollisions") {
+            _Game.currentGame.world.setResourceCollisionIndicatorsVisible(value);
+        }
+        if (key === "showGroupingGrid") {
+            _Game.currentGame.world.setGroupingGridVisible(value);
+        }
+        if (key === "showGround") {
+            _Game.currentGame.world.setGroundVisible(value);
         }
     }
     getMousePosition() {

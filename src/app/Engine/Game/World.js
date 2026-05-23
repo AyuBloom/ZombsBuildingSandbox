@@ -20,7 +20,12 @@ class World {
         this.replicator = new _Replication();
         this.localPlayer = new _LocalPlayer();
         this.isInitialized = false;
+        this.groundEntity = null;
         this.obstacleIndicators = {};
+        this.resourceCollisionIndicators = {};
+        this.groupingGridLoaded = false;
+        this.blueGrid = null;
+        this.purpleGrid = null;
         this.obstacleIndicatorColors = {
             stash: { r: 0x98, g: 0xfb, b: 0xcb },
             obstacle: { r: 0xff, g: 0x00, b: 0x00 }
@@ -33,17 +38,19 @@ class World {
         this.renderer.addTickCallback(this.onRendererTick.bind(this));
         _Game.currentGame.network.addEnterWorldHandler(data => {
             if (data.allowed && !this.isInitialized) {
-                var groundEntity = new _GroundEntity();
+                this.groundEntity = new _GroundEntity();
                 var borderTexture = new _SpriteEntity("/asset/image/map/map-grass.png", true);
                 var grassTexture = new _SpriteEntity("/asset/image/map/map-grass.png", true);
-                groundEntity.addAttachment(borderTexture);
-                groundEntity.addAttachment(grassTexture);
+                this.groundEntity.addAttachment(borderTexture);
+                this.groundEntity.addAttachment(grassTexture);
                 borderTexture.setDimensions(-960, -960, this.width + 1920, this.height + 1920);
                 borderTexture.setAnchor(0, 0);
                 borderTexture.setAlpha(0.75);
                 grassTexture.setDimensions(0, 0, this.width, this.height);
                 grassTexture.setAnchor(0, 0);
-                this.renderer.add(groundEntity);
+                this.groundEntity.setVisible(!!_Game.currentGame.ui.getOption("showGround"));
+                this.renderer.add(this.groundEntity);
+                this.makeGroupingGrid();
                 this.isInitialized = true;
             }
         });
@@ -168,6 +175,7 @@ class World {
         this.renderer.add(entity, data.entityClass);
         this.entityGrid.updateEntity(this.entities.get(data.uid));
         this.createObstacleIndicator(data);
+        this.createResourceCollisionIndicator(data);
     }
     updateEntity(uid, data) {
         this.entities.get(uid).setTargetTick(data);
@@ -186,6 +194,7 @@ class World {
             this.networkEntityPool.push(entity);
         }
         this.removeObstacleIndicator(uid);
+        this.removeResourceCollisionIndicator(uid);
         this.entities.delete(uid);
         this.entityGrid.removeEntity(parseInt(uid));
     }
@@ -271,6 +280,89 @@ class World {
         for (var uid in this.obstacleIndicators) {
             this.obstacleIndicators[uid].setVisible(visible);
         }
+    }
+    createResourceCollisionIndicator(data) {
+        if (this.resourceCollisionIndicators[data.uid]) {
+            return;
+        }
+        var radius = 0;
+        if (data.model === "Tree") {
+            radius = 70;
+        } else if (data.model === "Stone") {
+            radius = 50;
+        } else if (data.model === "NeutralCamp") {
+            radius = 60;
+        } else {
+            return;
+        }
+        var indicator = new _RangeIndicatorModel({
+            isCircular: true,
+            radius: radius,
+            innerColor: { r: 0xff, g: 0x44, b: 0x44 },
+            borderColor: { r: 0xff, g: 0x00, b: 0x00 },
+            lineWidth: 2
+        });
+        indicator.setPosition(data.position.x, data.position.y);
+        indicator.setVisible(!!_Game.currentGame.ui.getOption("showResourceCollisions"));
+        this.resourceCollisionIndicators[data.uid] = indicator;
+        this.renderer.npcs.addAttachment(indicator);
+    }
+    removeResourceCollisionIndicator(uid) {
+        if (this.resourceCollisionIndicators[uid]) {
+            this.renderer.npcs.removeAttachment(this.resourceCollisionIndicators[uid]);
+            delete this.resourceCollisionIndicators[uid];
+        }
+    }
+    setResourceCollisionIndicatorsVisible(visible) {
+        for (var uid in this.resourceCollisionIndicators) {
+            this.resourceCollisionIndicators[uid].setVisible(visible);
+        }
+    }
+    makeGroupingGrid() {
+        if (this.groupingGridLoaded) return;
+        this.groupingGridLoaded = true;
+
+        const blueCell = new _RangeIndicatorModel({
+            width: 196,
+            height: 196,
+            innerColor: null,
+            borderColor: { r: 111, g: 208, b: 247 },
+            lineWidth: 4
+        });
+
+        const purpleCell = new _RangeIndicatorModel({
+            width: 196,
+            height: 196,
+            innerColor: null,
+            borderColor: { r: 213, g: 118, b: 211 },
+            lineWidth: 4
+        });
+
+        this.blueGrid = new _SpriteEntity(blueCell.goldRegion.getTexture(), true);
+        this.blueGrid.setDimensions(0, 0, this.width || 24000, this.height || 24000);
+        this.blueGrid.setAnchor(0, 0);
+        this.blueGrid.setAlpha(1.5);
+        this.blueGrid.setVisible(!!_Game.currentGame.ui.getOption("showGroupingGrid"));
+
+        this.purpleGrid = new _SpriteEntity(purpleCell.goldRegion.getTexture(), true);
+        this.purpleGrid.setDimensions(48, 48, (this.width || 24000) - 48, (this.height || 24000) - 48);
+        this.purpleGrid.setAnchor(0, 0);
+        this.purpleGrid.setAlpha(1.75);
+        this.purpleGrid.setVisible(!!_Game.currentGame.ui.getOption("showGroupingGrid"));
+
+        this.renderer.ground.addAttachment(this.blueGrid);
+        this.renderer.ground.addAttachment(this.purpleGrid);
+    }
+    setGroupingGridVisible(visible) {
+        if (this.blueGrid) {
+            this.blueGrid.setVisible(visible);
+        }
+        if (this.purpleGrid) {
+            this.purpleGrid.setVisible(visible);
+        }
+    }
+    setGroundVisible(visible) {
+        this.groundEntity.setVisible(visible);
     }
     onRendererTick(delta) {
         var msInThisTick = this.replicator.getMsInThisTick();

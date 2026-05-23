@@ -2510,7 +2510,8 @@ main.privacy strong {
     font-size: 12px;
 }
 
-.hud-menu-settings .hud-settings-grid .hud-settings-controls {
+.hud-menu-settings .hud-settings-grid .hud-settings-controls,
+.hud-menu-settings .hud-settings-grid .hud-settings-indicators {
     display: block;
     margin: 0;
     color: rgba(255, 255, 255, 0.6);

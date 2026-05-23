@@ -9,6 +9,7 @@ import _Metrics from "../Metrics/Metrics";
 import _Ui from "../../Game/Ui/Ui";
 import { EventEmitter } from "events";
 import { defer } from "underscore";
+import { CompressedTextureResource } from "pixi.js";
 class Game extends EventEmitter {
     constructor(options) {
         super();

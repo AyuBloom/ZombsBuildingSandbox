@@ -4,8 +4,8 @@ class RangeIndicatorModel extends _ModelEntity {
     constructor(args) {
         super();
 
-        args.innerColor = args.innerColor || {r: 0xc8, g: 0xa0, b: 0x0};
-        args.borderColor = args.borderColor || { r: 0xff, g: 0xc8, b: 0x0 };
+        args.innerColor = args.innerColor === undefined ? {r: 0xc8, g: 0xa0, b: 0x0} : args.innerColor;
+        args.borderColor = args.borderColor === undefined ? { r: 0xff, g: 0xc8, b: 0x0 } : args.borderColor;
         args.lineWidth = args.lineWidth === undefined ? 8 : args.lineWidth;
 
         this.isCircular = false;
