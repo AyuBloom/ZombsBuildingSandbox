@@ -90,6 +90,16 @@ class UiPlacementOverlay extends _UiComponent {
                         innerColor: { r: 0xff, g: 0xff, b: 0xff },
                         borderColor: { r: 0xdd, g: 0xdd, b: 0xdd }
                     });
+                } else if (this.buildingId === 'Harvester') {
+                    var range = (schemaData.rangeTiers && schemaData.rangeTiers[0]) || 300;
+                    this.rangeIndicator = new _RangeIndicatorModel({
+                        isSector: true,
+                        radius: range,
+                        startAngle: -160,
+                        endAngle: -20,
+                        innerColor: { r: 0xff, g: 0xff, b: 0xff },
+                        borderColor: { r: 0xdd, g: 0xdd, b: 0xdd }
+                    });
                 } else if (schemaData.rangeTiers) {
                     this.rangeIndicator = new _RangeIndicatorModel({
                         isCircular: true,
@@ -107,6 +117,9 @@ class UiPlacementOverlay extends _UiComponent {
             this.placeholderText.setPosition(uiPos.x, uiPos.y - 110);
             if (this.rangeIndicator) {
                 this.rangeIndicator.setPosition(gridPos.x, gridPos.y);
+                if (this.buildingId === 'Harvester') {
+                    this.rangeIndicator.setRotation(this.direction * 90);
+                }
             }
         }
     }
@@ -143,7 +156,7 @@ class UiPlacementOverlay extends _UiComponent {
         var world = _Game.currentGame.world;
         var cellSize = world.entityGrid.getCellSize();
         var totalCellsUsed = schemaData.gridWidth * schemaData.gridHeight;
-        if (this.buildingId !== "GoldStash") {
+        if (["GoldStash", "Harvester"].indexOf(this.buildingId) == -1) {
           this.stashRangeIndicator = new _RangeIndicatorModel({
               width: this.maxStashDistance * cellSize * 2,
               height: this.maxStashDistance * cellSize * 2,
@@ -334,9 +347,10 @@ class UiPlacementOverlay extends _UiComponent {
         }
     }
     cycleDirection() {
-        if (!this.disableDirection) {
+        if (!this.disableDirection && this.buildingId) {
             this.direction = (this.direction + 1) % 4;
             this.placeholderEntity.setRotation(this.direction * 90);
+            this.update();
         }
     }
     checkIsOccupied(cellIndex, cellPos) {

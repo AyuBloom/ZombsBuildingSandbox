@@ -964,10 +964,27 @@ main.privacy strong {
  */
 
 .hud-server-switcher {
-    display: block;
+    display: flex;
+    gap: 10px;
     position: relative;
     z-index: 10;
     pointer-events: auto;
+}
+
+.hud-server-switcher button {
+    background: rgba(0, 0, 0, 0.4);
+    box-shadow: none;
+    border: none;
+    color: #ccc;
+    padding: 0 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+}
+
+.hud-server-switcher button:hover {
+    background: rgba(0, 0, 0, 0.5);
+    color: #eee;
 }
 
 .hud-server-switcher select {
@@ -977,7 +994,7 @@ main.privacy strong {
     line-height: 24px;
     padding: 6px 32px 6px 10px;
     background: rgba(0, 0, 0, 0.4);
-    color: #eee;
+    color: #ccc;
     border: none;
     font-size: 14px;
     border-radius: 4px;
@@ -986,8 +1003,8 @@ main.privacy strong {
 }
 
 .hud-server-switcher select:focus {
-    border-color: rgba(255, 255, 255, 0.4);
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.5);
+    color: #eee;
 }
 
 .hud-server-switcher select option {

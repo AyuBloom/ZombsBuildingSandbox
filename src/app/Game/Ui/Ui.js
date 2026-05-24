@@ -594,6 +594,8 @@ class Ui extends EventEmitter {
                     this.buildingSchema[buildingId].healthTiers = entityData.Health;
                     if (entityData.TowerRadius) {
                         this.buildingSchema[buildingId].rangeTiers = entityData.TowerRadius;
+                    } else if (entityData.HarvestRange) {
+                        this.buildingSchema[buildingId].rangeTiers = entityData.HarvestRange;
                     }
                     if (entityData.GoldPerSecond) {
                         this.buildingSchema[buildingId].gpsTiers = entityData.GoldPerSecond;

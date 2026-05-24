@@ -2,11 +2,13 @@ import _UiComponent from "./UiComponent";
 
 class UiServerSwitcher extends _UiComponent {
     constructor(ui) {
-        super(ui, "<div id=\"hud-server-switcher\" class=\"hud-server-switcher\"><select class=\"hud-server-switcher-select\"></select></div>");
+        super(ui, "<div id=\"hud-server-switcher\" class=\"hud-server-switcher\"><button id=\"hud-server-copy\" class=\"hud-server-copy\">Copy</button><select class=\"hud-server-switcher-select\"></select></div>");
+        this.copyElem = this.componentElem.querySelector(".hud-server-copy");
         this.selectElem = this.componentElem.querySelector(".hud-server-switcher-select");
         this.componentElem.addEventListener("mousedown", this.onMouseDown.bind(this));
         this.componentElem.addEventListener("mouseup", this.onMouseUp.bind(this));
         this.componentElem.addEventListener("wheel", this.onWheel.bind(this));
+        this.copyElem.addEventListener("click", this.onCopy.bind(this));
         this.selectElem.addEventListener("change", this.onServerChange.bind(this));
         this.updateServerList();
     }
@@ -36,6 +38,14 @@ class UiServerSwitcher extends _UiComponent {
             }
         }
         this.selectElem.value = currentServerId;
+    }
+    async onCopy() {
+      try {
+          await navigator.clipboard.writeText(`https://zombs.io/#/${this.selectElem.value}/sandbox`);
+          this.ui.components.PopupOverlay.showHint("Copied server link to clipboard.", 2000);
+        } catch (err) {
+          this.ui.components.PopupOverlay.showHint("Failed to copy server link.", 2000);
+        }
     }
     onServerChange(event) {
         this.ui.switchServer(event.target.value);

@@ -61,6 +61,15 @@ class UiBuildingOverlay extends _UiComponent {
                         height: this.maxStashDistance * cellSize * 2
                     });
                     _Game.currentGame.renderer.ground.addAttachment(this.rangeIndicator);
+                } else if (this.buildingId === "Harvester") {
+                    var range = (schemaData.rangeTiers && schemaData.rangeTiers[this.buildingTier - 1]) || 300;
+                    this.rangeIndicator = new _RangeIndicatorModel({
+                        isSector: true,
+                        radius: range,
+                        startAngle: -160,
+                        endAngle: -20
+                    });
+                    _Game.currentGame.renderer.ground.addAttachment(this.rangeIndicator);
                 } else if (schemaData.rangeTiers) {
                     this.rangeIndicator = new _RangeIndicatorModel({
                         isCircular: true,
@@ -179,6 +188,9 @@ class UiBuildingOverlay extends _UiComponent {
             this.componentElem.style.top = screenPos.y - entityHeight - this.componentElem.offsetHeight - 20 + "px";
             if (this.rangeIndicator) {
                 this.rangeIndicator.setPosition(networkEntity.getPositionX(), networkEntity.getPositionY());
+                if (this.buildingId === "Harvester") {
+                    this.rangeIndicator.setRotation(networkEntity.getRotation());
+                }
             }
 
             if (this.shouldUpgradeAll) {
@@ -215,6 +227,15 @@ class UiBuildingOverlay extends _UiComponent {
                                         width: this.maxStashDistance * cellSize * 2,
                                         height: this.maxStashDistance * cellSize * 2
                                     });
+                                } else if (this.buildingId === "Harvester") {
+                                    var range = (otherSchema.rangeTiers && otherSchema.rangeTiers[otherTier - 1]) || 300;
+                                    rangeIndicator = new _RangeIndicatorModel({
+                                        isSector: true,
+                                        radius: range,
+                                        startAngle: -160,
+                                        endAngle: -20,
+                                        innerColor: null
+                                    });
                                 } else if (otherSchema.rangeTiers) {
                                     rangeIndicator = new _RangeIndicatorModel({
                                         isCircular: true,
@@ -230,9 +251,12 @@ class UiBuildingOverlay extends _UiComponent {
                                 }
                             }
 
-                            if (this.extraRangeIndicators[uid]) {
-                                this.extraRangeIndicators[uid].setPosition(otherEntity.getPositionX(), otherEntity.getPositionY());
-                            }
+                             if (this.extraRangeIndicators[uid]) {
+                                 this.extraRangeIndicators[uid].setPosition(otherEntity.getPositionX(), otherEntity.getPositionY());
+                                 if (this.buildingId === "Harvester") {
+                                     this.extraRangeIndicators[uid].setRotation(otherEntity.getRotation());
+                                 }
+                             }
                         } else {
                             if (this.extraRangeIndicators[uid]) {
                                 _Game.currentGame.renderer.ground.removeAttachment(this.extraRangeIndicators[uid]);
@@ -267,6 +291,15 @@ class UiBuildingOverlay extends _UiComponent {
             this.rangeIndicator = new _RangeIndicatorModel({
                 width: this.maxStashDistance * cellSize * 2,
                 height: this.maxStashDistance * cellSize * 2
+            });
+            _Game.currentGame.renderer.ground.addAttachment(this.rangeIndicator);
+        } else if (this.buildingId === "Harvester") {
+            var range = (schemaData.rangeTiers && schemaData.rangeTiers[this.buildingTier - 1]) || 300;
+            this.rangeIndicator = new _RangeIndicatorModel({
+                isSector: true,
+                radius: range,
+                startAngle: -160,
+                endAngle: -20
             });
             _Game.currentGame.renderer.ground.addAttachment(this.rangeIndicator);
         } else if (schemaData.rangeTiers) {

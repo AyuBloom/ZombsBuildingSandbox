@@ -10,9 +10,12 @@ class RangeIndicatorModel extends _ModelEntity {
 
         this.isCircular = false;
         this.isCircular = args.isCircular || false;
+        this.isSector = args.isSector || false;
         this.goldRegion = new _DrawEntity();
         this.goldRegion.setAlpha(0.1);
-        if (this.isCircular) {
+        if (this.isSector) {
+            this.goldRegion.drawSector(0, 0, args.radius, args.startAngle, args.endAngle, false, args.innerColor, args.borderColor, args.lineWidth);
+        } else if (this.isCircular) {
             this.goldRegion.drawCircle(0, 0, args.radius, args.innerColor, args.borderColor, args.lineWidth);
         } else {
             this.goldRegion.drawRect(-args.width / 2, -args.height / 2, args.width / 2, args.height / 2, args.innerColor, args.borderColor, args.lineWidth);

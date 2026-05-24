@@ -34,6 +34,22 @@ class DrawEntity extends _Entity {
             this.draw.endFill();
         }
     }
+    drawSector(x, y, radius, startAngle, endAngle, anticlockwise, fill = null, lineFill = null, lineWidth = null) {
+        if (lineWidth && lineWidth > 0) {
+            this.draw.lineStyle(lineWidth, lineFill.r << 16 | lineFill.g << 8 | lineFill.b, lineFill.a);
+        }
+        startAngle = startAngle * Math.PI / 180;
+        endAngle = endAngle * Math.PI / 180;
+        if (fill) {
+            this.draw.beginFill(fill.r << 16 | fill.g << 8 | fill.b, fill.a);
+        }
+        this.draw.moveTo(x, y);
+        this.draw.arc(x, y, radius, startAngle, endAngle, anticlockwise);
+        this.draw.lineTo(x, y);
+        if (fill) {
+            this.draw.endFill();
+        }
+    }
     drawCircle(x, y, radius, fill = null, lineFill = null, lineWidth = null) {
         if (lineWidth && lineWidth > 0) {
             this.draw.lineStyle(lineWidth, lineFill.r << 16 | lineFill.g << 8 | lineFill.b, lineFill.a);

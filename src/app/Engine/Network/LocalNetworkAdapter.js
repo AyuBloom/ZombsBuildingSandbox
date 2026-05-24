@@ -58,7 +58,6 @@ class LocalNetworkAdapter extends _NetworkAdapter {
         this.buildings = {};
         this.activeBuildingsByPos = {};
         this.rss = {};
-        this.rssNearStash = {};
         this.goldstash = null;
 
         this.towersLength = {
@@ -362,29 +361,29 @@ class LocalNetworkAdapter extends _NetworkAdapter {
                     if (this.goldstash) {
                         const dx = parseInt(data.x) || 0;
                         const dy = parseInt(data.y) || 0;
-                        
+
                         let newX = this.goldstash.x + dx;
                         let newY = this.goldstash.y + dy;
-                        
+
                         newX = Math.max(192, Math.min(23808, newX));
                         newY = Math.max(192, Math.min(23808, newY));
-                        
+
                         newX = Math.round(newX / 48) * 48;
                         newY = Math.round(newY / 48) * 48;
-                        
+
                         const actualDx = newX - this.goldstash.x;
                         const actualDy = newY - this.goldstash.y;
-                        
+
                         if (actualDx !== 0 || actualDy !== 0) {
                             const oldX = this.goldstash.x;
                             const oldY = this.goldstash.y;
-                            
+
                             // Temporarily remove GoldStash position to check for collisions with other buildings/resources
                             const oldKey = oldX + ", " + oldY;
                             const savedStash = this.activeBuildingsByPos[oldKey];
                             delete this.activeBuildingsByPos[oldKey];
 
-                            const isValid = this.fixOccurredBuildingsByType(newX, newY, "GoldStash") && 
+                            const isValid = this.fixOccurredBuildingsByType(newX, newY, "GoldStash") &&
                                             this.fixOccurredBuildingsForRssByType(newX, newY, "GoldStash");
 
                             if (!isValid) {
@@ -401,25 +400,25 @@ class LocalNetworkAdapter extends _NetworkAdapter {
                                 });
                                 return;
                             }
-                            
+
                             this.goldstash.x = newX;
                             this.goldstash.y = newY;
                             this.activeBuildingsByPos[newX + ", " + newY] = this.goldstash;
-                            
+
                             const stashEntity = this.entities.get(this.goldstash.uid);
                             if (stashEntity) {
                                 stashEntity.position.x = newX;
                                 stashEntity.position.y = newY;
                                 this.markEntityDirty(this.goldstash.uid);
                             }
-                            
+
                             const buildingUids = Object.keys(this.buildings);
                             for (let i = 0; i < buildingUids.length; i++) {
                                 const uid = Number(buildingUids[i]);
                                 const building = this.buildings[uid];
                                 if (!building || building.uid === this.goldstash.uid) continue;
                                 if (building.type === "Harvester") continue;
-                                
+
                                 const distX = Math.abs(building.x - newX);
                                 const distY = Math.abs(building.y - newY);
                                 if (distX >= 865 || distY >= 865) {
@@ -437,14 +436,7 @@ class LocalNetworkAdapter extends _NetworkAdapter {
                                     this.dirtyEntities.delete(uid);
                                 }
                             }
-                            
-                            this.rssNearStash = {};
-                            for (let i in this.rss) {
-                                if (Math.abs(this.rss[i].position.y - this.goldstash.y) < 1225 && Math.abs(this.rss[i].position.x - this.goldstash.x) < 1225) {
-                                    this.rssNearStash[i] = this.rss[i];
-                                }
-                            }
-                            
+
                             this.onMessage({
                                 name: 'LocalBuilding',
                                 response: [this.goldstash],
@@ -521,12 +513,6 @@ class LocalNetworkAdapter extends _NetworkAdapter {
                             response: [obj],
                             opcode: 9
                         });
-                        this.rssNearStash = {};
-                        for (let i in this.rss) {
-                            if (Math.abs(this.rss[i].position.y - this.goldstash.y) < 1225 && Math.abs(this.rss[i].position.x - this.goldstash.x) < 1225) {
-                                this.rssNearStash[i] = this.rss[i];
-                            }
-                        }
                     }
                     if (this.goldstash && data.type !== "GoldStash" && !this.activeBuildingsByPos[data.x + ", " + data.y] && this.towersLength[data.type] < this.towerLimits[data.type] && ((Math.abs(data.y - this.goldstash.y) < 865 && Math.abs(data.x - this.goldstash.x) < 865) || data.type == "Harvester") && data.x >= 192 && data.x <= 23808 && data.y >= 192 && data.y <= 23808 && this.fixOccurredBuildingsByType(data.x, data.y, data.type) && this.fixOccurredBuildingsForRssByType(data.x, data.y, data.type)) {
                         let _uid = ++this.uid;
@@ -821,7 +807,7 @@ class LocalNetworkAdapter extends _NetworkAdapter {
         } else if (rss.model === "Stone") {
             radius = 50;
         }
-        
+
         // Define building half-size (Wall, Door, SlowTrap are 48x48; others are 96x96)
         let hw = 48;
         let hh = 48;
@@ -829,32 +815,32 @@ class LocalNetworkAdapter extends _NetworkAdapter {
             hw = 24;
             hh = 24;
         }
-        
+
         // Bounding box of the building
         const minX = x - hw;
         const maxX = x + hw;
         const minY = y - hh;
         const maxY = y + hh;
-        
+
         // Resource center coordinates
         const cx = rss.position.x;
         const cy = rss.position.y;
-        
+
         // Closest point on building box to resource center
         const closestX = Math.max(minX, Math.min(cx, maxX));
         const closestY = Math.max(minY, Math.min(cy, maxY));
-        
+
         // Distance from closest point to resource center
         const distX = cx - closestX;
         const distY = cy - closestY;
-        
+
         if (distX * distX + distY * distY < radius * radius) {
             return 1; // Collision detected
         }
     }
 
     fixOccurredBuildingsForRssByType(x, y, type) {
-        const source = this.goldstash ? this.rssNearStash : this.rss;
+        const source = this.rss;
         for (let i in source) {
             if (this.checkOccupiedBuildingForRss(source[i], x, y, type) === 1) {
                 return false;
