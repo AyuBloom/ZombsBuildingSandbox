@@ -79,56 +79,39 @@ class UiIntro extends _UiComponent {
         const lastUpdatedElem = this.componentElem.querySelector("#last-updated");
         if (!lastUpdatedElem) return;
 
-        fetch("https://api.github.com/repos/AyuBloom/ZombsBuildingSandbox/commits?per_page=1")
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("HTTP error " + response.status);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data && data.length > 0) {
-                    const commit = data[0].commit;
-                    const commitDate = new Date(commit.author.date);
-                    
-                    const timeAgo = (date) => {
-                        const seconds = Math.floor((new Date() - date) / 1000);
-                        if (seconds < 1) return "just now";
-                        
-                        const intervals = {
-                            year: 31536000,
-                            month: 2592000,
-                            week: 604800,
-                            day: 86400,
-                            hour: 3600,
-                            minute: 60,
-                            second: 1
-                        };
+        // Fallback to current time if constant is not defined
+        const buildTimestamp = typeof __BUILD_TIMESTAMP__ !== "undefined" ? __BUILD_TIMESTAMP__ : Date.now();
+        const buildDate = new Date(buildTimestamp);
 
-                        for (const [unit, value] of Object.entries(intervals)) {
-                            const count = Math.floor(seconds / value);
-                            if (count >= 1) {
-                                return `${count} ${unit}${count > 1 ? 's' : ''} ago`;
-                            }
-                        }
-                        return "just now";
-                    };
-                    
-                    const elapsed = timeAgo(commitDate);
-                    const absoluteDate = commitDate.toLocaleString();
-                    
-                    lastUpdatedElem.textContent = `Last Updated: ${elapsed}`;
-                    lastUpdatedElem.href = `https://github.com/AyuBloom/ZombsBuildingSandbox/commit/${data[0].sha}`;
-                    lastUpdatedElem.title = `Commit "${commit.message}" on ${absoluteDate}`;
-                } else {
-                    lastUpdatedElem.textContent = "Last Updated: Unknown";
+        const timeAgo = (date) => {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            if (seconds < 1) return "just now";
+            
+            const intervals = {
+                year: 31536000,
+                month: 2592000,
+                week: 604800,
+                day: 86400,
+                hour: 3600,
+                minute: 60,
+                second: 1
+            };
+
+            for (const [unit, value] of Object.entries(intervals)) {
+                const count = Math.floor(seconds / value);
+                if (count >= 1) {
+                    return `${count} ${unit}${count > 1 ? 's' : ''} ago`;
                 }
-            })
-            .catch(err => {
-                console.error("Failed to fetch last updated commit info:", err);
-                lastUpdatedElem.textContent = "Last Updated: View commits";
-                lastUpdatedElem.href = "https://github.com/AyuBloom/ZombsBuildingSandbox/commits";
-            });
+            }
+            return "just now";
+        };
+
+        const elapsed = timeAgo(buildDate);
+        const absoluteDate = buildDate.toLocaleString();
+
+        lastUpdatedElem.textContent = `Last Updated: ${elapsed}`;
+        lastUpdatedElem.href = "https://github.com/AyuBloom/ZombsBuildingSandbox/commits";
+        lastUpdatedElem.title = `Built on ${absoluteDate}`;
     }
     updateServerOptions() {
         var options = this.serverElem.querySelectorAll("option");

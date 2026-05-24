@@ -72,6 +72,7 @@ module.exports = {
     // Inject BASE_PATH as a global constant so JS source can use it
     new webpack.DefinePlugin({
       __BASE_PATH__: JSON.stringify(BASE_PATH),
+      __BUILD_TIMESTAMP__: Date.now(),
     }),
     new HtmlWebpackPlugin({
       template: "./src/index.html",

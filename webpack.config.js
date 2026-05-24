@@ -2,6 +2,7 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
+const webpack = require("webpack");
 
 module.exports = {
   entry: "./src/app/Game/app.js",
@@ -54,6 +55,9 @@ module.exports = {
     ],
   },
   plugins: [
+    new webpack.DefinePlugin({
+      __BUILD_TIMESTAMP__: Date.now(),
+    }),
     new HtmlWebpackPlugin({
       template: "./src/index.html",
       filename: "index.html",
