@@ -3,6 +3,14 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const webpack = require("webpack");
+const { execSync } = require("child_process");
+
+let buildHash = "";
+try {
+  buildHash = execSync("git rev-parse --short HEAD").toString().trim();
+} catch (e) {
+  console.error("Failed to get git commit hash:", e);
+}
 
 module.exports = {
   entry: "./src/app/Game/app.js",
@@ -57,6 +65,7 @@ module.exports = {
   plugins: [
     new webpack.DefinePlugin({
       __BUILD_TIMESTAMP__: Date.now(),
+      __BUILD_HASH__: JSON.stringify(buildHash),
     }),
     new HtmlWebpackPlugin({
       template: "./src/index.html",

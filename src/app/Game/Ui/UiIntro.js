@@ -81,12 +81,13 @@ class UiIntro extends _UiComponent {
 
         // Fallback to current time if constant is not defined
         const buildTimestamp = typeof __BUILD_TIMESTAMP__ !== "undefined" ? __BUILD_TIMESTAMP__ : Date.now();
+        const buildHash = typeof __BUILD_HASH__ !== "undefined" ? __BUILD_HASH__ : "";
         const buildDate = new Date(buildTimestamp);
 
         const timeAgo = (date) => {
             const seconds = Math.floor((new Date() - date) / 1000);
             if (seconds < 1) return "just now";
-            
+
             const intervals = {
                 year: 31536000,
                 month: 2592000,
@@ -110,8 +111,13 @@ class UiIntro extends _UiComponent {
         const absoluteDate = buildDate.toLocaleString();
 
         lastUpdatedElem.textContent = `Last Updated: ${elapsed}`;
-        lastUpdatedElem.href = "https://github.com/AyuBloom/ZombsBuildingSandbox/commits";
-        lastUpdatedElem.title = `Built on ${absoluteDate}`;
+        if (buildHash) {
+            lastUpdatedElem.href = `https://github.com/AyuBloom/ZombsBuildingSandbox/commit/${buildHash}`;
+            lastUpdatedElem.title = `Built on ${absoluteDate} (${buildHash})`;
+        } else {
+            lastUpdatedElem.href = "https://github.com/AyuBloom/ZombsBuildingSandbox/commits";
+            lastUpdatedElem.title = `Built on ${absoluteDate}`;
+        }
     }
     updateServerOptions() {
         var options = this.serverElem.querySelectorAll("option");

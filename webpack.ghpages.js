@@ -4,6 +4,14 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const webpack = require("webpack");
+const { execSync } = require("child_process");
+
+let buildHash = "";
+try {
+  buildHash = execSync("git rev-parse --short HEAD").toString().trim();
+} catch (e) {
+  console.error("Failed to get git commit hash:", e);
+}
 
 // Read the base path from the environment variable, defaulting to "/"
 const BASE_PATH = process.env.BASE_PATH || "/";
@@ -73,6 +81,7 @@ module.exports = {
     new webpack.DefinePlugin({
       __BASE_PATH__: JSON.stringify(BASE_PATH),
       __BUILD_TIMESTAMP__: Date.now(),
+      __BUILD_HASH__: JSON.stringify(buildHash),
     }),
     new HtmlWebpackPlugin({
       template: "./src/index.html",
