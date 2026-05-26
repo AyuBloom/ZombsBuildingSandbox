@@ -48,8 +48,7 @@ class Debug {
   onRendererTick() {
     this.ticks++;
     if (this.visible && this.ticks % 20 === 0) {
-      var text = "Ping: " + _Game.currentGame.network.getPing() + " ms<br>";
-      var serverTime = _Game.currentGame.world.getReplicator().getServerTime();
+      var text = "";
       var clientTime = _Game.currentGame.world.getReplicator().getClientTime();
       var realClientTime = _Game.currentGame.world
         .getReplicator()
@@ -61,9 +60,6 @@ class Debug {
       var interpolating = _Game.currentGame.world
         .getReplicator()
         .getInterpolating();
-      var tickByteSize = _Game.currentGame.world
-        .getReplicator()
-        .getTickByteSize();
       var tickEntities = _Game.currentGame.world
         .getReplicator()
         .getTickEntities();
@@ -77,19 +73,14 @@ class Debug {
       var maxExtrapolationTime = _Game.currentGame.world
         .getReplicator()
         .getMaxExtrapolationTime();
-      text = text + "Server time: " + serverTime + " ms<br>";
       text = text + "Client time: " + clientTime + " ms<br>";
       text = text + "Real client time: " + realClientTime + " ms<br>";
-      text = text + "Client lag: " + (serverTime - clientTime) + " ms<br>";
-      text =
-        text + "Real client lag: " + (serverTime - realClientTime) + " ms<br>";
       text = text + "Stutters: " + frameStutters + "<br>";
       text = text + "Frames extrapolated: " + framesExtrapolated + "<br>";
       text = text + "Max extrapolation time: " + maxExtrapolationTime + "<br>";
       text = text + "Client time resets: " + clientTimeResets + "<br>";
       text = text + "FPS: " + Math.floor(fps) + "<br>";
       text = text + "Interpolating: " + interpolating + "<br>";
-      text = text + "Tick byte size: " + tickByteSize + "<br>";
       text = text + "Tick entities: " + tickEntities + "<br>";
       text =
         text + "Pooled network entities: " + pooledNetworkEntityCount + "<br>";

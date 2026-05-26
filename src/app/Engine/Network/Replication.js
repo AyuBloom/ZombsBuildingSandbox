@@ -8,13 +8,10 @@ class Replication {
     this.shiftedGameTime = 0;
     this.lastShiftedGameTime = 0;
     this.receivedFirstTick = false;
-    this.serverTime = 0;
     this.msPerTick = 0;
     this.msInThisTick = 0;
     this.msElapsed = 0;
     this.lastMsElapsed = 0;
-    this.ping = 0;
-    this.lastPing = 0;
     this.startTime = null;
     this.startShiftedGameTime = 0;
     this.frameStutters = 0;
@@ -63,9 +60,6 @@ class Replication {
   getMsUntilTick(tick) {
     return tick * this.msPerTick - this.shiftedGameTime;
   }
-  getServerTime() {
-    return Math.floor(this.serverTime);
-  }
   getClientTime() {
     return Math.floor(this.shiftedGameTime);
   }
@@ -94,12 +88,6 @@ class Replication {
   }
   getInterpolating() {
     return this.interpolating;
-  }
-  getTickByteSize() {
-    if (this.currentTick == null) {
-      return 0;
-    }
-    return this.currentTick.byteSize;
   }
   getTickEntities() {
     if (this.currentTick == null) {
@@ -149,7 +137,6 @@ class Replication {
       debug("Prevented huge delta time %d after render pause", msElapsed);
       msElapsed = 0;
     }
-    this.serverTime += msElapsed;
     this.shiftedGameTime += msElapsed;
     this.msInThisTick += msElapsed;
     this.updateTick();
@@ -186,9 +173,6 @@ class Replication {
       } else {
         this.interpolating = true;
       }
-      if (this.serverTime - this.shiftedGameTime < this.ping) {
-        this.ticksDesynced++;
-      }
     }
   }
   onEnterWorld(data) {
@@ -197,14 +181,11 @@ class Replication {
       this.msPerTick = 1000 / data.tickRate;
       this.msInThisTick = 0;
       this.shiftedGameTime = 0;
-      this.serverTime = 0;
       this.currentTick = null;
       this.ticks = [];
       this.receivedFirstTick = false;
       this.msElapsed = 0;
       this.lastMsElapsed = 0;
-      this.ping = _Game.currentGame.network.getPing();
-      this.lastPing = this.ping;
       this.startTime = null;
       this.startShiftedGameTime = 0;
       this.interpolating = false;
@@ -237,7 +218,6 @@ class Replication {
     if (this.latestTickUpdatedCallback) {
       this.latestTickUpdatedCallback(data);
     }
-    this.serverTime = data.tick * this.msPerTick + this.ping;
     this.ticks.push(data);
     if (this.receivedFirstTick) {
       this.checkRendererPaused();
@@ -282,7 +262,6 @@ class Replication {
       debug("Start time: %s", this.startTime);
       debug("Tick index: %d", data.tick);
       debug("MS per tick: %f", this.msPerTick);
-      debug("Ping: %fms", this.ping);
       this.shiftedGameTime = data.tick * this.msPerTick - 90;
       this.startShiftedGameTime = this.shiftedGameTime;
       this.clientTimeResets = 0;

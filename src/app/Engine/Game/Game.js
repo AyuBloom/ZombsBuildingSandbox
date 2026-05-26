@@ -29,11 +29,9 @@ class Game extends EventEmitter {
     Game.currentGame = this;
     this.options = options || {};
     defer(() => {
-      this.setNetworkEntityPooling(200);
-      this.setModelEntityPooling("ProjectileArrowModel", 50);
-      this.setModelEntityPooling("ProjectileBombModel", 50);
-      this.setModelEntityPooling("ProjectileCannonModel", 50);
-      this.setModelEntityPooling("ProjectileMageModel", 50);
+      this.setNetworkEntityPooling(826);
+      // this.setModelEntityPooling("RecoilModel", 800);
+      this.setModelEntityPooling("NeutralCampModel", 25);
       this.preload();
     });
   }

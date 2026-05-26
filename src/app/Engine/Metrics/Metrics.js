@@ -3,43 +3,24 @@ var Debugger = require("debug");
 var debug = Debugger("Engine:Metrics/Metrics");
 class Metrics {
   constructor() {
-    this.msElapsedSinceMetricsSent = 0;
     this.metrics = null;
-    this.pingSum = 0;
-    this.pingSamples = 0;
-    this.shouldSend = false;
     this.fpsSum = 0;
     this.fpsSamples = 0;
     this.reset();
     _Game.currentGame.network.addEnterWorldHandler(() => {
       this.reset();
-      this.shouldSend = true;
     });
     _Game.currentGame.network.addCloseHandler(() => {
-      if (_Game.currentGame.network.socket.readyState != 1) {
         this.reset();
-        this.shouldSend = false;
-      }
     });
     _Game.currentGame.network.addErrorHandler(() => {
       this.reset();
-      this.shouldSend = false;
-    });
-    _Game.currentGame.renderer.addTickCallback((delta) => {
-      if (this.shouldSend) {
-        this.msElapsedSinceMetricsSent += delta;
-        if (this.updateMetrics()) {
-          this.sendMetrics();
-        }
-      }
     });
   }
   getFramesExtrapolated() {
     return this.metrics.framesExtrapolated || 0;
   }
   reset() {
-    this.pingSum = 0;
-    this.pingSamples = 0;
     this.fpsSum = 0;
     this.fpsSamples = 0;
     this.metrics = {
@@ -52,13 +33,6 @@ class Metrics {
       framesInterpolated: 0,
       framesExtrapolated: 0,
       allocatedNetworkEntities: null,
-      currentClientLag: null,
-      minClientLag: null,
-      maxClientLag: null,
-      currentPing: null,
-      minPing: null,
-      maxPing: null,
-      averagePing: null,
       longFrames: 0,
       stutters: 0,
       isMobile: 0,
@@ -83,10 +57,7 @@ class Metrics {
       .getTickEntities();
     var pooledNetworkEntityCount =
       _Game.currentGame.world.getPooledNetworkEntityCount();
-    var serverTime = _Game.currentGame.world.getReplicator().getServerTime();
     var clientTime = _Game.currentGame.world.getReplicator().getClientTime();
-    var ping = _Game.currentGame.network.getPing();
-    var clientLag = serverTime - clientTime;
     if (fps < this.metrics.minFps || this.metrics.minFps === null) {
       this.metrics.minFps = fps;
     }
@@ -105,29 +76,6 @@ class Metrics {
     this.metrics.framesRendered++;
     this.metrics.allocatedNetworkEntities =
       tickEntities + pooledNetworkEntityCount;
-    this.metrics.currentClientLag = clientLag;
-    if (
-      clientLag < this.metrics.minClientLag ||
-      this.metrics.minClientLag === null
-    ) {
-      this.metrics.minClientLag = clientLag;
-    }
-    if (
-      clientLag > this.metrics.maxClientLag ||
-      this.metrics.maxClientLag === null
-    ) {
-      this.metrics.maxClientLag = clientLag;
-    }
-    this.metrics.currentPing = ping;
-    if (ping < this.metrics.minPing || this.metrics.minPing === null) {
-      this.metrics.minPing = ping;
-    }
-    if (ping > this.metrics.maxPing || this.metrics.maxPing === null) {
-      this.metrics.maxPing = ping;
-    }
-    this.pingSamples++;
-    this.pingSum += ping;
-    this.metrics.averagePing = this.pingSum / this.pingSamples;
     this.metrics.stutters = _Game.currentGame.world
       .getReplicator()
       .getFrameStutters();
@@ -148,16 +96,6 @@ class Metrics {
       .getReplicator()
       .getDifferenceInClientTime();
     return true;
-  }
-  sendMetrics() {
-    if (!(this.msElapsedSinceMetricsSent < 5000)) {
-      try {
-        _Game.currentGame.network.sendRpc(this.metrics);
-      } catch (e) {
-        debug("Error while updating metrics ", e);
-      }
-      this.msElapsedSinceMetricsSent = 0;
-    }
   }
 }
 export default Metrics;

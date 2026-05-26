@@ -20,9 +20,6 @@ class NetworkAdapter {
   sendInput(data) {
     this.sendPacket(_PacketIds.PACKET_INPUT, data);
   }
-  sendPing(data) {
-    this.sendPacket(_PacketIds.PACKET_PING, data);
-  }
   sendRpc(data) {
     this.sendPacket(_PacketIds.PACKET_RPC, data);
   }
@@ -38,11 +35,6 @@ class NetworkAdapter {
   }
   addEntityUpdateHandler(callback) {
     this.addPacketHandler(_PacketIds.PACKET_ENTITY_UPDATE, (response) => {
-      callback(response);
-    });
-  }
-  addPingHandler(callback) {
-    this.addPacketHandler(_PacketIds.PACKET_PING, (response) => {
       callback(response);
     });
   }

@@ -127,9 +127,11 @@ class Ui extends EventEmitter {
     _Game.currentGame.network.addConnectHandler(
       this.onConnectionOpen.bind(this),
     );
+    /*
     _Game.currentGame.network.addCloseHandler(
       this.onConnectionClose.bind(this),
     );
+    */
     _Game.currentGame.network.addEnterWorldHandler(
       this.onEnterWorld.bind(this),
     );
@@ -644,6 +646,7 @@ class Ui extends EventEmitter {
   onConnectionOpen(event) {
     this.components.Reconnect.hide();
   }
+  /*
   onConnectionClose(event) {
     if (
       _Game.currentGame.world.getInWorld() &&
@@ -652,6 +655,7 @@ class Ui extends EventEmitter {
       this.components.Reconnect.show();
     }
   }
+  */
   onEnterWorld(data) {
     if (data.allowed) {
       delete this.playerTick;
@@ -1009,11 +1013,10 @@ class Ui extends EventEmitter {
     var game = _Game.currentGame;
     if (!game) return;
 
-    game.network.disconnect();
-
     this.setOption("serverId", serverId);
     game.options.serverId = serverId;
     var server = game.options.servers[serverId];
+
     game.network.connect(server);
   }
   onDragOver(event) {

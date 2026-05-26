@@ -36,6 +36,7 @@ class World {
       this.onEntityUpdate.bind(this),
     );
     this.replicator.init();
+    this.network.addCloseHandler(this.onClose.bind(this));
     this.network.addEnterWorldHandler(this.onEnterWorld.bind(this));
     this.renderer.addTickCallback(this.onRendererTick.bind(this));
     _Game.currentGame.network.addEnterWorldHandler((data) => {
@@ -137,6 +138,11 @@ class World {
       return 0;
     }
     return this.modelEntityPool[modelName].length;
+  }
+  onClose() {
+    for (let uid of this.entities.keys()) {
+      this.removeEntity(uid);
+    }
   }
   onEnterWorld(data) {
     if (data.allowed) {
