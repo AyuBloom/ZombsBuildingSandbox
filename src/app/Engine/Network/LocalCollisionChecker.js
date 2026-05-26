@@ -3,49 +3,57 @@ export default class LocalCollisionChecker {
     this.rss = {};
     this.activeBuildingsByPos = {};
   }
+
   reset() {
     this.rss = {};
     this.activeBuildingsByPos = {};
   }
+
+  /**
+   * Validates if a building placement grid is aligned and not obstructed by neighboring buildings.
+   */
   fixOccurredBuildingsByType(x, y, type) {
-    if (type === "Wall" || type === "Door" || type === "SlowTrap") {
-      return (
-        x % 48 === 24 &&
-        y % 48 === 24 &&
-        !this.activeBuildingsByPos[24 + x + ", " + y] &&
-        !this.activeBuildingsByPos[x - 24 + ", " + y] &&
-        !this.activeBuildingsByPos[x + ", " + (y + 24)] &&
-        !this.activeBuildingsByPos[x + ", " + (y - 24)] &&
-        !this.activeBuildingsByPos[x - 24 + ", " + (y - 24)] &&
-        !this.activeBuildingsByPos[24 + x + ", " + (y + 24)] &&
-        !this.activeBuildingsByPos[x - 24 + ", " + (y + 24)] &&
-        !this.activeBuildingsByPos[24 + x + ", " + (y - 24)]
-      );
+    const isSmall = type === "Wall" || type === "Door" || type === "SlowTrap";
+    const expectedMod = isSmall ? 24 : 0;
+    
+    // Ensure the placement aligns with the grid system rules
+    if (x % 48 !== expectedMod || y % 48 !== expectedMod) {
+      return false;
     }
-    return (
-      x % 48 === 0 &&
-      y % 48 === 0 &&
-      !this.activeBuildingsByPos[24 + x + ", " + y] &&
-      !this.activeBuildingsByPos[x - 24 + ", " + y] &&
-      !this.activeBuildingsByPos[x + ", " + (y + 24)] &&
-      !this.activeBuildingsByPos[x + ", " + (y - 24)] &&
-      !this.activeBuildingsByPos[x - 24 + ", " + (y - 24)] &&
-      !this.activeBuildingsByPos[24 + x + ", " + (y + 24)] &&
-      !this.activeBuildingsByPos[x - 24 + ", " + (y + 24)] &&
-      !this.activeBuildingsByPos[24 + x + ", " + (y - 24)] &&
-      !this.activeBuildingsByPos[48 + x + ", " + y] &&
-      !this.activeBuildingsByPos[x - 48 + ", " + y] &&
-      !this.activeBuildingsByPos[x + ", " + (y + 48)] &&
-      !this.activeBuildingsByPos[x + ", " + (y - 48)] &&
-      !this.activeBuildingsByPos[x - 48 + ", " + (y - 48)] &&
-      !this.activeBuildingsByPos[48 + x + ", " + (y + 48)] &&
-      !this.activeBuildingsByPos[x - 48 + ", " + (y + 48)] &&
-      !this.activeBuildingsByPos[48 + x + ", " + (y - 48)]
-    );
+
+    // Determine neighbor check range: small structures check 1 grid step (24px) away, 
+    // large structures check both 1 grid step (24px) and 2 grid steps (48px) away.
+    const steps = isSmall ? [24] : [24, 48];
+
+    for (const step of steps) {
+      const neighbors = [
+        // Cardinal directions
+        `${x + step}, ${y}`,
+        `${x - step}, ${y}`,
+        `${x}, ${y + step}`,
+        `${x}, ${y - step}`,
+        // Diagonal directions
+        `${x + step}, ${y + step}`,
+        `${x - step}, ${y + step}`,
+        `${x + step}, ${y - step}`,
+        `${x - step}, ${y - step}`
+      ];
+
+      for (const pos of neighbors) {
+        if (this.activeBuildingsByPos[pos]) {
+          return false; // Obstructed by another building
+        }
+      }
+    }
+
+    return true; // Position is clear
   }
 
+  /**
+   * Checks if a placed building overlaps/collides with a resource node using circle-to-rectangle bounds math.
+   */
   checkOccupiedBuildingForRss(rss, x, y, type) {
-    // Define resource radius (Tree: 70, Stone: 50, NeutralCamp: 60)
+    // 1. Resource node radius (Tree: 70px, Stone: 50px, Neutral Camp: 60px)
     let radius = 60;
     if (rss.model === "Tree") {
       radius = 70;
@@ -53,44 +61,34 @@ export default class LocalCollisionChecker {
       radius = 50;
     }
 
-    // Define building half-size (Wall, Door, SlowTrap are 48x48; others are 96x96)
-    let hw = 48;
-    let hh = 48;
-    if (type === "Wall" || type === "Door" || type === "SlowTrap") {
-      hw = 24;
-      hh = 24;
-    }
+    // 2. Building bounding half-sizes (Wall, Door, Trap are 48x48; others are 96x96)
+    const isSmallBuilding = type === "Wall" || type === "Door" || type === "SlowTrap";
+    const halfSize = isSmallBuilding ? 24 : 48;
 
-    // Bounding box of the building
-    const minX = x - hw;
-    const maxX = x + hw;
-    const minY = y - hh;
-    const maxY = y + hh;
+    // 3. Find closest point on building rectangle to resource center
+    const closestX = Math.max(x - halfSize, Math.min(rss.position.x, x + halfSize));
+    const closestY = Math.max(y - halfSize, Math.min(rss.position.y, y + halfSize));
 
-    // Resource center coordinates
-    const cx = rss.position.x;
-    const cy = rss.position.y;
+    // 4. Calculate distance from closest point to resource center
+    const distX = rss.position.x - closestX;
+    const distY = rss.position.y - closestY;
+    const distanceSquared = distX * distX + distY * distY;
 
-    // Closest point on building box to resource center
-    const closestX = Math.max(minX, Math.min(cx, maxX));
-    const closestY = Math.max(minY, Math.min(cy, maxY));
-
-    // Distance from closest point to resource center
-    const distX = cx - closestX;
-    const distY = cy - closestY;
-
-    if (distX * distX + distY * distY < radius * radius) {
+    if (distanceSquared < radius * radius) {
       return 1; // Collision detected
     }
   }
 
+  /**
+   * Checks building placement validation against all known resources on the map.
+   */
   fixOccurredBuildingsForRssByType(x, y, type) {
-    const source = this.rss;
-    for (let i in source) {
-      if (this.checkOccupiedBuildingForRss(source[i], x, y, type) === 1) {
-        return false;
+    for (const id in this.rss) {
+      const resource = this.rss[id];
+      if (this.checkOccupiedBuildingForRss(resource, x, y, type) === 1) {
+        return false; // Overlaps with a resource node
       }
     }
-    return true;
+    return true; // No overlap with resources
   }
 }

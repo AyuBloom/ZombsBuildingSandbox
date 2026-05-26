@@ -135,6 +135,19 @@ class LocalNetworkAdapter extends _NetworkAdapter {
       );
 
       this.onMessage({
+        name: "PartyInfo",
+        response: [
+          {
+            playerUid: this.playerUid,
+            displayName: this.playerdata.name,
+            isLeader: 1,
+            canSell: 1,
+          },
+        ],
+        opcode: 9,
+      });
+
+      this.onMessage({
         name: "BuildingShopPrices",
         response: {
           json: buildingShopPricesJson,

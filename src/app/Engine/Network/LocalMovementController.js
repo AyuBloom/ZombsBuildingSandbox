@@ -28,35 +28,22 @@ export default class LocalMovementController {
   }
 
   updateInputs(data, playerdata) {
-    this.yaw = 1;
-    if (data.up) this.up = 1;
-    if (data.down) this.down = 1;
-    if (data.right) this.right = 1;
-    if (data.left) this.left = 1;
-    if (data.up === 0) this.up = 0;
-    if (data.down === 0) this.down = 0;
-    if (data.right === 0) this.right = 0;
-    if (data.left === 0) this.left = 0;
+    if (data.up !== undefined) this.up = data.up;
+    if (data.down !== undefined) this.down = data.down;
+    if (data.right !== undefined) this.right = data.right;
+    if (data.left !== undefined) this.left = data.left;
     if (data.shift !== undefined) this.shift = data.shift;
 
-    if (this.up && !this.down && !this.right && !this.left) this.yaw = 0;
-    if (this.down && !this.up && !this.right && !this.left) this.yaw = 180;
-    if (this.right && !this.up && !this.down && !this.left) this.yaw = 90;
-    if (this.left && !this.up && !this.right && !this.down) this.yaw = 270;
+    const dx = this.right - this.left;
+    const dy = this.down - this.up;
 
-    if (this.up && !this.down && this.right && !this.left) this.yaw = 45;
-    if (this.up && !this.down && !this.right && this.left) this.yaw = 315;
-    if (!this.up && this.down && this.right && !this.left) this.yaw = 135;
-    if (!this.up && this.down && !this.right && this.left) this.yaw = 225;
-
-    if (this.up && this.down && !this.right && this.left) this.yaw = 270;
-    if (this.up && this.down && this.right && !this.left) this.yaw = 90;
-    if (this.up && !this.down && this.right && this.left) this.yaw = 0;
-    if (!this.up && this.down && this.right && this.left) this.yaw = 180;
-
-    if (this.up && this.down && !this.right && !this.left) this.yaw = 1;
-    if (!this.up && !this.down && this.right && this.left) this.yaw = 1;
-    if (this.up && this.down && this.right && this.left) this.yaw = 1;
+    if (dx === 0 && dy === 0) {
+      this.yaw = 1;
+    } else {
+      let angle = Math.atan2(dx, -dy) * (180 / Math.PI);
+      if (angle < 0) angle += 360;
+      this.yaw = Math.round(angle);
+    }
 
     if (playerdata) {
       playerdata.yaw = this.yaw;
@@ -83,47 +70,20 @@ export default class LocalMovementController {
       const oldX = playerdata.position.x;
       const oldY = playerdata.position.y;
 
-      if (this.yaw === 0) {
-        playerdata.position.y -= speed;
-      }
-      if (this.yaw === 45) {
-        playerdata.position.x += speed / 1.5;
-        playerdata.position.y -= speed / 1.5;
-      }
-      if (this.yaw === 90) {
-        playerdata.position.x += speed;
-      }
-      if (this.yaw === 135) {
-        playerdata.position.x += speed / 1.5;
-        playerdata.position.y += speed / 1.5;
-      }
-      if (this.yaw === 180) {
-        playerdata.position.y += speed;
-      }
-      if (this.yaw === 225) {
-        playerdata.position.x -= speed / 1.5;
-        playerdata.position.y += speed / 1.5;
-      }
-      if (this.yaw === 270) {
-        playerdata.position.x -= speed;
-      }
-      if (this.yaw === 315) {
-        playerdata.position.x -= speed / 1.5;
-        playerdata.position.y -= speed / 1.5;
+      if (this.yaw !== 1) {
+        const isDiagonal = this.yaw % 90 !== 0;
+        const speedMultiplier = isDiagonal ? speed / 1.5 : speed;
+
+        if (this.yaw === 0 || this.yaw === 45 || this.yaw === 315) playerdata.position.y -= speedMultiplier;
+        if (this.yaw === 135 || this.yaw === 180 || this.yaw === 225) playerdata.position.y += speedMultiplier;
+        if (this.yaw === 45 || this.yaw === 90 || this.yaw === 135) playerdata.position.x += speedMultiplier;
+        if (this.yaw === 225 || this.yaw === 270 || this.yaw === 315) playerdata.position.x -= speedMultiplier;
       }
 
-      playerdata.position.x = Math.max(
-        0,
-        Math.min(24000, playerdata.position.x),
-      );
-      playerdata.position.y = Math.max(
-        0,
-        Math.min(24000, playerdata.position.y),
-      );
-      if (
-        playerdata.position.x !== oldX ||
-        playerdata.position.y !== oldY
-      ) {
+      playerdata.position.x = Math.max(0, Math.min(24000, playerdata.position.x));
+      playerdata.position.y = Math.max(0, Math.min(24000, playerdata.position.y));
+
+      if (playerdata.position.x !== oldX || playerdata.position.y !== oldY) {
         this.entityManager.markEntityDirty(playerUid);
       }
     }, 16);
