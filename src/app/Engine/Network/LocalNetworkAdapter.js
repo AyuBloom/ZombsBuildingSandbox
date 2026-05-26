@@ -9,6 +9,7 @@ import LocalBuildingManager from "./LocalBuildingManager";
 import {
   getInitialPlayerData,
   getInitialConnectPacketData,
+  buildingShopPricesJson,
 } from "./LocalNetworkConfig";
 
 class LocalNetworkAdapter extends _NetworkAdapter {
@@ -25,7 +26,7 @@ class LocalNetworkAdapter extends _NetworkAdapter {
     this.buildingManager = new LocalBuildingManager(
       this.collisionChecker,
       this.entityManager,
-      (msg) => this.onMessage(msg)
+      (msg) => this.onMessage(msg),
     );
   }
 
@@ -133,13 +134,21 @@ class LocalNetworkAdapter extends _NetworkAdapter {
         _Game.currentGame.world.localPlayer.entity,
       );
 
+      this.onMessage({
+        name: "BuildingShopPrices",
+        response: {
+          json: buildingShopPricesJson,
+        },
+        opcode: 9,
+      });
+
       // Tick interval
       this.tickInterval = setInterval(() => {
         this.onMessage({
           tick: this.ticks++,
           entities: this.entityManager.createEntityUpdate(
             this.playerUid,
-            this.playerdata
+            this.playerdata,
           ),
           opcode: 0,
         });
