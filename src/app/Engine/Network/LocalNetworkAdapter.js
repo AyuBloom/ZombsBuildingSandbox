@@ -65,7 +65,6 @@ class LocalNetworkAdapter extends _NetworkAdapter {
   }
 
   connect(options) {
-    this.disconnect();
     this.connectionOptions = options;
     this.connecting = true;
 
@@ -129,10 +128,6 @@ class LocalNetworkAdapter extends _NetworkAdapter {
           this.collisionChecker.rss[entity.uid] = entity;
         }
       }
-
-      _Game.currentGame.renderer.follow(
-        _Game.currentGame.world.localPlayer.entity,
-      );
 
       this.onMessage({
         name: "PartyInfo",

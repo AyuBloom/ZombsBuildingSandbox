@@ -134,26 +134,48 @@ class Entity {
   }
   isInViewport() {
     var currentViewport = _Game.currentGame.renderer.getCurrentViewport();
+    if (!currentViewport || !this.node) return true;
+    var x = this.node.position.x;
+    var y = this.node.position.y;
+    var radius = 120; // safe padding radius
     return (
-      !(
-        this.node.position.x - this.node.width >
-        currentViewport.x + currentViewport.width
-      ) &&
-      !(
-        this.node.position.y - this.node.height >
-        currentViewport.y + currentViewport.height
-      ) &&
-      !(this.node.position.x + this.node.width < currentViewport.x) &&
-      !(this.node.position.y + this.node.height < currentViewport.y)
+      x + radius >= currentViewport.x &&
+      x - radius <= currentViewport.x + currentViewport.width &&
+      y + radius >= currentViewport.y &&
+      y - radius <= currentViewport.y + currentViewport.height
     );
   }
   update(dt, user) {
     if (this.shouldCull) {
-      this.node.visible = this.isVisible && this.isInViewport();
+      var inViewport = this.isInViewport();
+      this.node.visible = this.isVisible && inViewport;
+      if (!inViewport) {
+        return;
+      }
     }
     this.attachments.forEach((e) => {
       e.update(dt, user);
     });
+  }
+  destroy() {
+    if (this.attachments) {
+      this.attachments.forEach((attachment) => {
+        if (attachment && typeof attachment.destroy === "function") {
+          attachment.destroy();
+        }
+      });
+      this.attachments = [];
+    }
+    if (this.node) {
+      if (this.node.parent) {
+        this.node.parent.removeChild(this.node);
+      }
+      if (typeof this.node.destroy === "function") {
+        this.node.destroy({ children: true, texture: false, baseTexture: false });
+      }
+      this.node = null;
+    }
+    this.parent = null;
   }
 }
 export default Entity;

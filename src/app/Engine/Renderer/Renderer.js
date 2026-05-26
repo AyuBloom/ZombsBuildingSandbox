@@ -216,10 +216,19 @@ class Renderer extends EventEmitter {
     }
     this.animateZoom();
     if (this.followingObject) {
-      this.lookAtPosition(
-        this.followingObject.getPositionX(),
-        this.followingObject.getPositionY(),
-      );
+      if (this.followingObject.getNode() === null) {
+        this.stopFollowing();
+      } else {
+        try {
+          this.lookAtPosition(
+            this.followingObject.getPositionX(),
+            this.followingObject.getPositionY(),
+          );
+        } catch (e) {
+          debug("Failed to follow object, stopping follow: ", e);
+          this.stopFollowing();
+        }
+      }
     }
     try {
       this.scene.update(delta, null);

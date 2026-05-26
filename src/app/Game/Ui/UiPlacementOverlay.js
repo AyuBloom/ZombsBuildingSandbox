@@ -399,28 +399,35 @@ class UiPlacementOverlay extends _UiComponent {
   cancelPlacing() {
     if (this.buildingId) {
       debug("Cancelling placing building: %s", this.buildingId);
-      _Game.currentGame.renderer.ui.removeAttachment(this.placeholderEntity);
+      if (this.placeholderEntity) {
+        _Game.currentGame.renderer.ui.removeAttachment(this.placeholderEntity);
+        this.placeholderEntity.destroy();
+        this.placeholderEntity = null;
+      }
       if (this.rangeIndicator) {
         _Game.currentGame.renderer.ground.removeAttachment(this.rangeIndicator);
+        this.rangeIndicator.destroy();
         this.rangeIndicator = null;
       }
       if (this.stashRangeIndicator) {
         _Game.currentGame.renderer.ground.removeAttachment(
           this.stashRangeIndicator,
         );
+        this.stashRangeIndicator.destroy();
         this.stashRangeIndicator = null;
       }
       for (var i in this.placeholderTints) {
         _Game.currentGame.renderer.ui.removeAttachment(
           this.placeholderTints[i],
         );
+        this.placeholderTints[i].destroy();
       }
       for (var i in this.borderTints) {
         _Game.currentGame.renderer.ground.removeAttachment(this.borderTints[i]);
+        this.borderTints[i].destroy();
       }
       this.placeholderText.setAlpha(0);
       this.placeholderText.setPosition(-1000, -1000);
-      this.placeholderEntity = null;
       this.placeholderTints = [];
       this.borderTints = [];
       this.buildingId = null;

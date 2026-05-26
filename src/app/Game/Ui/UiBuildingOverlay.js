@@ -67,6 +67,7 @@ class UiBuildingOverlay extends _UiComponent {
           _Game.currentGame.renderer.ground.removeAttachment(
             this.rangeIndicator,
           );
+          this.rangeIndicator.destroy();
           delete this.rangeIndicator;
         }
         this.buildingTier = buildingData.tier;
@@ -299,6 +300,7 @@ class UiBuildingOverlay extends _UiComponent {
                   _Game.currentGame.renderer.ground.removeAttachment(
                     existingIndicator,
                   );
+                  existingIndicator.destroy();
                   delete this.extraRangeIndicators[uid];
                 }
 
@@ -365,6 +367,7 @@ class UiBuildingOverlay extends _UiComponent {
                 _Game.currentGame.renderer.ground.removeAttachment(
                   this.extraRangeIndicators[uid],
                 );
+                this.extraRangeIndicators[uid].destroy();
                 delete this.extraRangeIndicators[uid];
               }
             }
@@ -456,6 +459,7 @@ class UiBuildingOverlay extends _UiComponent {
       debug("Stopping watching building: %s", this.buildingUid);
       if (this.rangeIndicator) {
         _Game.currentGame.renderer.ground.removeAttachment(this.rangeIndicator);
+        this.rangeIndicator.destroy();
         delete this.rangeIndicator;
       }
       this.clearExtraRangeIndicators();
@@ -475,6 +479,7 @@ class UiBuildingOverlay extends _UiComponent {
           _Game.currentGame.renderer.ground.removeAttachment(
             this.extraRangeIndicators[uid],
           );
+          this.extraRangeIndicators[uid].destroy();
         }
       }
       this.extraRangeIndicators = {};

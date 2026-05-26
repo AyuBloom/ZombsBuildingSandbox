@@ -210,15 +210,31 @@ class World {
   }
   removeEntity(uid) {
     var entity = this.entities.get(uid);
+    if (!entity) return;
     var model = entity.currentModel;
-    this.renderer.remove(this.entities.get(uid));
-    if (_Game.currentGame.getModelEntityPooling(model.modelName)) {
-      model.reset();
-      this.modelEntityPool[model.modelName].push(model);
+    if (this.renderer.followingObject === entity) {
+      this.renderer.stopFollowing();
+    }
+    if (this.localPlayer && this.localPlayer.getEntity() === entity) {
+      this.localPlayer.setEntity(null);
+    }
+    this.renderer.remove(entity);
+    if (model) {
+      if (_Game.currentGame.getModelEntityPooling(model.modelName)) {
+        model.reset();
+        if (!this.modelEntityPool[model.modelName]) {
+          this.modelEntityPool[model.modelName] = [];
+        }
+        this.modelEntityPool[model.modelName].push(model);
+      } else {
+        model.destroy();
+      }
     }
     if (_Game.currentGame.getNetworkEntityPooling()) {
       entity.reset();
       this.networkEntityPool.push(entity);
+    } else {
+      entity.destroy();
     }
     this.removeObstacleIndicator(uid);
     this.removeResourceCollisionIndicator(uid);
@@ -282,6 +298,12 @@ class World {
     if (this.obstacleIndicators[data.uid]) {
       return;
     }
+    if (!this.renderer || !this.renderer.ground) {
+      return;
+    }
+    if (!_Game.currentGame.ui.getOption("obstacleIndicators")) {
+      return;
+    }
     var bounds = this.getObstacleIndicatorBounds(data);
     if (!bounds) {
       return;
@@ -294,25 +316,39 @@ class World {
       lineWidth: 0,
     });
     indicator.setPosition(bounds.x, bounds.y);
-    indicator.setVisible(
-      !!_Game.currentGame.ui.getOption("obstacleIndicators"),
-    );
+    indicator.setVisible(true);
     this.obstacleIndicators[data.uid] = indicator;
     this.renderer.ground.addAttachment(indicator);
   }
   removeObstacleIndicator(uid) {
     if (this.obstacleIndicators[uid]) {
       this.renderer.ground.removeAttachment(this.obstacleIndicators[uid]);
+      this.obstacleIndicators[uid].destroy();
       delete this.obstacleIndicators[uid];
     }
   }
   setObstacleIndicatorsVisible(visible) {
-    for (var uid in this.obstacleIndicators) {
-      this.obstacleIndicators[uid].setVisible(visible);
+    if (visible) {
+      for (var [uid, entity] of this.entities.entries()) {
+        const tick = entity.getTargetTick();
+        if (tick) {
+          this.createObstacleIndicator(tick);
+        }
+      }
+    } else {
+      for (var uid in this.obstacleIndicators) {
+        this.removeObstacleIndicator(uid);
+      }
     }
   }
   createResourceCollisionIndicator(data) {
     if (this.resourceCollisionIndicators[data.uid]) {
+      return;
+    }
+    if (!this.renderer || !this.renderer.npcs) {
+      return;
+    }
+    if (!_Game.currentGame.ui.getOption("showResourceCollisions")) {
       return;
     }
     var radius = 0;
@@ -333,9 +369,7 @@ class World {
       lineWidth: 2,
     });
     indicator.setPosition(data.position.x, data.position.y);
-    indicator.setVisible(
-      !!_Game.currentGame.ui.getOption("showResourceCollisions"),
-    );
+    indicator.setVisible(true);
     this.resourceCollisionIndicators[data.uid] = indicator;
     this.renderer.npcs.addAttachment(indicator);
   }
@@ -344,12 +378,22 @@ class World {
       this.renderer.npcs.removeAttachment(
         this.resourceCollisionIndicators[uid],
       );
+      this.resourceCollisionIndicators[uid].destroy();
       delete this.resourceCollisionIndicators[uid];
     }
   }
   setResourceCollisionIndicatorsVisible(visible) {
-    for (var uid in this.resourceCollisionIndicators) {
-      this.resourceCollisionIndicators[uid].setVisible(visible);
+    if (visible) {
+      for (var [uid, entity] of this.entities.entries()) {
+        const tick = entity.getTargetTick();
+        if (tick) {
+          this.createResourceCollisionIndicator(tick);
+        }
+      }
+    } else {
+      for (var uid in this.resourceCollisionIndicators) {
+        this.removeResourceCollisionIndicator(uid);
+      }
     }
   }
   makeGroupingGrid() {
