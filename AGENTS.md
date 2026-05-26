@@ -9,6 +9,10 @@ A website that takes available environments in the real game - zombs.io - and le
 - [webpack](https://webpack.js.org/)
 - [babel](https://babeljs.io/): for library conversions.
 
+## Knowledge Source
+
+- [zombs.io Wiki - llms.txt](https://ayubloom.github.io/zombsWiki/llms.txt): use when you need referencing to the original / real game.
+
 ## Project Structure
 
 A high-level overview of the project structure and key components of the codebase:

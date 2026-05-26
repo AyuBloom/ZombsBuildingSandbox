@@ -15,25 +15,25 @@ class UiMenuIcons extends _UiComponent {
     );
     this.componentElem.addEventListener("mouseup", this.onMouseUp.bind(this));
     var rawIconElements = this.componentElem.querySelectorAll(".hud-menu-icon");
+    var self = this;
     function addIconElem(i) {
-      This.iconElems[i] = rawIconElements[i];
-      This.iconElems[i].addEventListener(
+      self.iconElems[i] = rawIconElements[i];
+      self.iconElems[i].addEventListener(
         "click",
-        This.onIconClick(i).bind(This),
+        self.onIconClick(i).bind(self),
       );
       new _UiTooltip(
-        This.iconElems[i],
+        self.iconElems[i],
         function (elem) {
           return (
             '<div class="hud-tooltip-menu-icon">\n                    <h4>' +
-            This.iconElems[i].innerHTML +
+            self.iconElems[i].innerHTML +
             "</h4>\n                </div>"
           );
         },
         "left",
       );
     }
-    var This = this;
     for (var i = 0; i < rawIconElements.length; i++) {
       addIconElem(i);
     }
@@ -45,13 +45,12 @@ class UiMenuIcons extends _UiComponent {
     event.stopPropagation();
   }
   onIconClick(i) {
-    var This = this;
+    var self = this;
     return function (event) {
-      var type = This.iconElems[i].getAttribute("data-type");
-      var buildingOverlay = This.ui.getComponent("BuildingOverlay");
-      var placementOverlay = This.ui.getComponent("PlacementOverlay");
-      var spellOverlay = This.ui.getComponent("SpellOverlay");
-      var menuSettings = This.ui.getComponent("MenuSettings");
+      var type = self.iconElems[i].getAttribute("data-type");
+      var buildingOverlay = self.ui.getComponent("BuildingOverlay");
+      var placementOverlay = self.ui.getComponent("PlacementOverlay");
+      var menuSettings = self.ui.getComponent("MenuSettings");
 
       event.stopPropagation();
       buildingOverlay.stopWatching();

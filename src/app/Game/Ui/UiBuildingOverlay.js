@@ -429,12 +429,32 @@ class UiBuildingOverlay extends _UiComponent {
       });
       _Game.currentGame.renderer.ground.addAttachment(this.rangeIndicator);
     }
+    var actionsHtml = "";
+    if (this.buildingId === "GoldStash") {
+      actionsHtml =
+        '\n                    <div class="hud-building-dual-btn">' +
+        '\n                        <a class="btn btn-purple hud-building-deposit hud-building-import">Import Design</a>' +
+        '\n                        <a class="btn btn-gold hud-building-collect hud-building-export">Export Design</a>' +
+        '\n                    </div>' +
+        '\n                    <a class="btn btn-blue hud-building-offset">Offset</a>' +
+        '\n                    <a class="btn btn-green hud-building-upgrade">Upgrade</a>' +
+        '\n                    <a class="btn btn-red hud-building-sell">Sell</a>';
+    } else {
+      actionsHtml =
+        '\n                    <a class="btn btn-green hud-building-upgrade">Upgrade</a>' +
+        '\n                    <a class="btn btn-blue hud-building-offset" style="display:none;">Offset</a>' +
+        '\n                    <a class="btn btn-red hud-building-sell">Sell</a>';
+    }
+
     this.componentElem.innerHTML =
       '<div class="hud-tooltip-building">\n            <h2>' +
       schemaData.name +
       '</h2>\n            <h3>Tier <span class="hud-building-tier">' +
       this.buildingTier +
-      '</span> Building</h3>\n            <div class="hud-tooltip-health">\n                <span class="hud-tooltip-health-bar" style="width:100%;"></span>\n            </div>\n            <div class="hud-tooltip-body">\n                <div class="hud-building-stats"></div>\n                <p class="hud-building-actions">\n                    <a class="btn btn-green hud-building-upgrade">Upgrade</a>\n                    <a class="btn btn-blue hud-building-offset" style="display:none;">Offset</a>\n                    <a class="btn btn-red hud-building-sell">Sell</a>\n                </p>\n            </div>\n        </div>';
+      '</span> Building</h3>\n            <div class="hud-tooltip-health">\n                <span class="hud-tooltip-health-bar" style="width:100%;"></span>\n            </div>\n            <div class="hud-tooltip-body">\n                <div class="hud-building-stats"></div>\n                <div class="hud-building-actions">' +
+      actionsHtml +
+      '\n                </div>\n            </div>\n        </div>';
+
     this.tierElem = this.componentElem.querySelector(".hud-building-tier");
     this.healthBarElem = this.componentElem.querySelector(
       ".hud-tooltip-health-bar",
@@ -451,6 +471,13 @@ class UiBuildingOverlay extends _UiComponent {
     this.upgradeElem.addEventListener("click", this.upgradeBuilding.bind(this));
     this.offsetElem.addEventListener("click", this.offsetGoldStash.bind(this));
     this.sellElem.addEventListener("click", this.sellBuilding.bind(this));
+
+    if (this.buildingId === "GoldStash") {
+      this.importElem = this.componentElem.querySelector(".hud-building-import");
+      this.exportElem = this.componentElem.querySelector(".hud-building-export");
+      this.importElem.addEventListener("click", this.importBase.bind(this));
+      this.exportElem.addEventListener("click", this.exportBase.bind(this));
+    }
     this.show();
     this.update();
   }
@@ -606,6 +633,281 @@ class UiBuildingOverlay extends _UiComponent {
       this.ui.components.PlacementOverlay.startOffsettingStash();
     }
   }
+  clearBase() {
+    const game = window.currentGame || _Game.currentGame;
+    const buildingOverlay = this;
+    buildingOverlay.stopWatching();
+
+    const buildings = Object.assign({}, this.ui.buildings);
+
+    let stashUid = null;
+    for (const uid in buildings) {
+      if (buildings[uid].type === "GoldStash") {
+        stashUid = uid;
+        break;
+      }
+    }
+
+    if (stashUid) {
+      game.network.sendRpc({
+        name: "DeleteBuilding",
+        uid: parseInt(stashUid)
+      });
+    } else {
+      for (const uid in buildings) {
+        game.network.sendRpc({
+          name: "DeleteBuilding",
+          uid: parseInt(uid)
+        });
+      }
+    }
+
+    if (this.ui.components.PopupOverlay) {
+      this.ui.components.PopupOverlay.showHint("Sandbox cleared!", 2000);
+    }
+  }
+
+  exportBase() {
+    const TILE_PX = 48;
+    const BUILDING_MODELS = [
+      "GoldStash",
+      "Wall",
+      "Door",
+      "SlowTrap",
+      "ArrowTower",
+      "CannonTower",
+      "MeleeTower",
+      "BombTower",
+      "MagicTower",
+      "GoldMine",
+      "Harvester"
+    ];
+    const BUILDING_MODEL_INDEX = {};
+    BUILDING_MODELS.forEach((model, i) => {
+      BUILDING_MODEL_INDEX[model] = i;
+    });
+
+    let goldStash = Object.values(this.ui.buildings).find(
+      b => b.type === "GoldStash" && !b.dead
+    );
+
+    if (!goldStash) {
+      if (this.ui.components.PopupOverlay) {
+        this.ui.components.PopupOverlay.showHint("Error: A Gold Stash is required to export!", 3000);
+      }
+      return;
+    }
+
+    let goldStashPos = { x: goldStash.x, y: goldStash.y };
+    let buildingsToPack = [];
+
+    for (let uid in this.ui.buildings) {
+      let b = this.ui.buildings[uid];
+      if (b.dead || !BUILDING_MODEL_INDEX.hasOwnProperty(b.type)) continue;
+
+      let schema = this.ui.buildingSchema[b.type];
+      let halfWidth = schema.gridWidth * (TILE_PX / 2);
+      let halfHeight = schema.gridHeight * (TILE_PX / 2);
+
+      let xOffsetBits = Math.abs(((b.x - halfWidth) - goldStashPos.x) / TILE_PX);
+      let yOffsetBits = Math.abs(((b.y - halfHeight) - goldStashPos.y) / TILE_PX);
+
+      if (Math.max(xOffsetBits, yOffsetBits) >= 32) {
+        continue;
+      }
+
+      buildingsToPack.push({
+        x: b.x,
+        y: b.y,
+        type: b.type,
+        yaw: b.yaw,
+        tier: b.tier,
+        xOffsetBits,
+        yOffsetBits
+      });
+    }
+
+    let data = new Uint8Array(buildingsToPack.length * 3);
+    for (let i = 0; i < buildingsToPack.length; i++) {
+      let b = buildingsToPack[i];
+
+      data[i * 3] =
+        (b.xOffsetBits << 3)
+        | (b.x > goldStashPos.x ? 0b100 : 0b000)
+        | (Math.round(b.yaw / 90) & 0b0011);
+
+      data[i * 3 + 1] =
+        (b.yOffsetBits << 3)
+        | (b.y > goldStashPos.y ? 0b100 : 0b000)
+        | (BUILDING_MODEL_INDEX[b.type] >> 2);
+
+      data[i * 3 + 2] =
+        ((BUILDING_MODEL_INDEX[b.type] & 0b0011) << 3)
+        | ((b.tier - 1) & 0b0111);
+    }
+
+    const blob = new Blob([data], { type: "application/octet-stream" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `base_${Date.now()}.zombsmatica`;
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+
+    setTimeout(() => {
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }, 100);
+
+    if (this.ui.components.PopupOverlay) {
+      this.ui.components.PopupOverlay.showHint("Base blueprint exported!", 3000);
+    }
+  }
+
+  importBase() {
+    const TILE_PX = 48;
+    const BUILDING_MODELS = [
+      "GoldStash",
+      "Wall",
+      "Door",
+      "SlowTrap",
+      "ArrowTower",
+      "CannonTower",
+      "MeleeTower",
+      "BombTower",
+      "MagicTower",
+      "GoldMine",
+      "Harvester"
+    ];
+
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".zombsmatica";
+
+    input.onchange = async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const buffer = await file.arrayBuffer();
+      const data = new Uint8Array(buffer);
+
+      if (data.byteLength % 3 > 0) {
+        if (this.ui.components.PopupOverlay) {
+          this.ui.components.PopupOverlay.showHint("Error: Invalid blueprint file format!", 3000);
+        }
+        return;
+      }
+
+      const game = window.currentGame || _Game.currentGame;
+      let playerPos = { x: 12000, y: 12000 };
+      if (this.ui.playerTick && this.ui.playerTick.position) {
+        playerPos = this.ui.playerTick.position;
+      }
+
+      let stashX = Math.round(playerPos.x / 48) * 48;
+      let stashY = Math.round(playerPos.y / 48) * 48;
+
+      this.clearBase();
+
+      try {
+        let buildingsToCreate = [];
+        for (let index = 0; index < data.length; index += 3) {
+          const modelIndex = ((data[index + 1] & 0b00000011) << 2) | (data[index + 2] >> 3);
+          const model = BUILDING_MODELS[modelIndex];
+
+          if (!model || !this.ui.buildingSchema[model]) {
+            throw new Error(`Invalid model at index ${index}`);
+          }
+
+          const xSide = ((data[index] & 0b00000100) >> 2) * 2 - 1;
+          const ySide = ((data[index + 1] & 0b00000100) >> 2) * 2 - 1;
+
+          const schema = this.ui.buildingSchema[model];
+          const halfWidth = schema.gridWidth * (TILE_PX / 2);
+          const halfHeight = schema.gridHeight * (TILE_PX / 2);
+
+          const xOffset = ((data[index] >> 3) * TILE_PX + halfWidth * xSide) * xSide;
+          const yOffset = ((data[index + 1] >> 3) * TILE_PX + halfHeight * ySide) * ySide;
+
+          const yaw = (data[index] & 0b00000011) * 90;
+          const tier = (data[index + 2] & 0b00000111) + 1;
+
+          buildingsToCreate.push({
+            model,
+            xOffset,
+            yOffset,
+            yaw,
+            tier
+          });
+        }
+
+        let stashBuilding = buildingsToCreate.find(b => b.model === "GoldStash");
+        let otherBuildings = buildingsToCreate.filter(b => b.model !== "GoldStash");
+
+        if (!stashBuilding) {
+          stashBuilding = { model: "GoldStash", xOffset: 0, yOffset: 0, yaw: 0, tier: 1 };
+        }
+
+        game.network.sendRpc({
+          name: "MakeBuilding",
+          type: "GoldStash",
+          x: stashX,
+          y: stashY,
+          yaw: stashBuilding.yaw
+        });
+
+        let stashCreated = Object.values(this.ui.buildings).find(
+          b => b.x === stashX && b.y === stashY && !b.dead
+        );
+        if (stashCreated) {
+          for (let t = 1; t < stashBuilding.tier; t++) {
+            game.network.sendRpc({
+              name: "UpgradeBuilding",
+              uid: stashCreated.uid
+            });
+          }
+        }
+
+        for (let b of otherBuildings) {
+          const bX = stashX + b.xOffset;
+          const bY = stashY + b.yOffset;
+
+          game.network.sendRpc({
+            name: "MakeBuilding",
+            type: b.model,
+            x: bX,
+            y: bY,
+            yaw: b.yaw
+          });
+
+          const created = Object.values(this.ui.buildings).find(
+            x => x.x === bX && x.y === bY && !x.dead
+          );
+          if (created) {
+            for (let t = 1; t < b.tier; t++) {
+              game.network.sendRpc({
+                name: "UpgradeBuilding",
+                uid: created.uid
+              });
+            }
+          }
+        }
+
+        if (this.ui.components.PopupOverlay) {
+          this.ui.components.PopupOverlay.showHint("Base blueprint loaded!", 3000);
+        }
+      } catch (err) {
+        console.error("Blueprint import failed:", err);
+        if (this.ui.components.PopupOverlay) {
+          this.ui.components.PopupOverlay.showHint("Error: Blueprint parsing failed!", 3000);
+        }
+      }
+    };
+
+    input.click();
+  }
+
   onBuildingSchemaUpdate() {
     this.update();
   }
