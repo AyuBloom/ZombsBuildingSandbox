@@ -32,19 +32,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: bun install --frozen-lockfile
 
       - name: Build with GitHub Pages base path
-        run: pnpm exec webpack --config webpack.ghpages.js
+        run: bunx webpack --config webpack.ghpages.js
         env:
           BASE_PATH: ${{ env.BASE_PATH }}
 
@@ -52,7 +47,8 @@ jobs:
       # HTML, CSS and JS files so they resolve under the subpath.
       # Handles both plain /asset/ and JSON-escaped \/asset\/ forms.
       - name: Rewrite absolute asset paths for subpath deployment
-        run: node scripts/rewrite-asset-paths.js release
+        run: bun scripts/rewrite-asset-paths.js release
+
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

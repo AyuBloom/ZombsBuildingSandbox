@@ -4,7 +4,7 @@ A website that takes available environments in the real game - zombs.io - and le
 
 ## Tech Stack
 
-- [pnpm](https://pnpm.io/)
+- [bun](https://bun.com/): package manager and runtime.
 - [Prettier](https://prettier.io/)
 - [webpack](https://webpack.js.org/)
 - [babel](https://babeljs.io/): for library conversions.
@@ -51,7 +51,7 @@ A high-level overview of the project structure and key components of the codebas
 │           └── Ui/         # User interface overlays, components, toolbar, and screens (Ui.js, UiPlacementOverlay.js, UiBuildingOverlay.js)
 ├── babel.config.json       # Babel configuration
 ├── package.json            # NPM package configuration & scripts
-├── pnpm-lock.yaml          # Pnpm lock file
+├── bun.lock                # Bun lock file
 ├── webpack.config.js       # Base Webpack configuration for local dev and build
 ├── webpack.ghpages.js      # Webpack configuration for GitHub Pages deployment
 └── webpack.prod.js         # Webpack configuration for optimized production builds
