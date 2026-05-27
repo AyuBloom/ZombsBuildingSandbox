@@ -113,6 +113,15 @@ a:hover {
   background-color: #bf7b3c;
 }
 
+.btn-orange {
+  background-color: #e65c00;
+}
+
+.btn-orange:hover,
+.btn-orange:active {
+  background-color: #ff701a;
+}
+
 .btn-twitter {
   background-color: #1b95e0;
 }
@@ -2185,7 +2194,8 @@ main.privacy strong {
   margin: 0 0 6px;
 }
 
-.hud-building-overlay .hud-building-dual-btn .hud-building-deposit {
+.hud-building-overlay .hud-building-dual-btn .hud-building-deposit,
+.hud-building-overlay .hud-building-dual-btn .hud-building-upgrade {
   position: relative;
   display: block;
   float: left;
@@ -2208,7 +2218,8 @@ main.privacy strong {
   cursor: not-allowed !important;
 }
 
-.hud-building-overlay .hud-building-dual-btn .hud-building-collect {
+.hud-building-overlay .hud-building-dual-btn .hud-building-collect,
+.hud-building-overlay .hud-building-dual-btn .hud-building-downgrade {
   position: relative;
   display: block;
   float: left;
@@ -2221,6 +2232,7 @@ main.privacy strong {
 }
 
 .hud-building-overlay .hud-building-upgrade,
+.hud-building-overlay .hud-building-downgrade,
 .hud-building-overlay .hud-building-offset {
   position: relative;
   display: block;
@@ -2254,6 +2266,24 @@ main.privacy strong {
 
 .hud-building-overlay .hud-building-upgrade.is-disabled {
   background: #47950d !important;
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+}
+
+.hud-building-overlay .hud-building-downgrade::after {
+  content: "(X)";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  line-height: 36px;
+  font-family: "Open Sans", sans-serif;
+  margin: 0 10px 0 0;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.hud-building-overlay .hud-building-downgrade.is-disabled {
+  background: #e65c00 !important;
   opacity: 0.4 !important;
   cursor: not-allowed !important;
 }

@@ -334,5 +334,49 @@ export default class LocalBuildingManager {
       }
       return;
     }
+
+    if (data.name == "DowngradeBuilding") {
+      if (
+        this.buildings[data.uid] &&
+        this.buildings[data.uid].tier > 1
+      ) {
+        let tier = this.buildings[data.uid].tier - 1;
+        this.buildings[data.uid].tier = tier;
+        this.collisionChecker.activeBuildingsByPos[
+          this.buildings[data.uid].x + ", " + this.buildings[data.uid].y
+        ].tier = tier;
+        this.onMessageCallback({
+          name: "LocalBuilding",
+          response: [this.buildings[data.uid]],
+          opcode: 9,
+        });
+        this.entityManager.entities.get(data.uid).tier = tier;
+        this.entityManager.markEntityDirty(data.uid);
+
+        // If the GoldStash is downgraded, also downgrade any buildings whose tier exceeds the new GoldStash tier
+        if (this.goldstash && data.uid == this.goldstash.uid) {
+          const buildingUids = Object.keys(this.buildings);
+          for (let i = 0; i < buildingUids.length; i++) {
+            const uid = Number(buildingUids[i]);
+            const building = this.buildings[uid];
+            if (!building || building.uid === this.goldstash.uid) continue;
+            if (building.tier > tier) {
+              building.tier = tier;
+              this.collisionChecker.activeBuildingsByPos[
+                building.x + ", " + building.y
+              ].tier = tier;
+              this.onMessageCallback({
+                name: "LocalBuilding",
+                response: [building],
+                opcode: 9,
+              });
+              this.entityManager.entities.get(uid).tier = tier;
+              this.entityManager.markEntityDirty(uid);
+            }
+          }
+        }
+      }
+      return;
+    }
   }
 }

@@ -11,6 +11,7 @@ class UiBuildingOverlay extends _UiComponent {
       '<div id="hud-building-overlay" class="hud-building-overlay hud-tooltip hud-tooltip-top"></div>',
     );
     this.shouldUpgradeAll = false;
+    this.hasConfirmedStashDowngrade = false;
     this.maxStashDistance = 18;
     this.extraRangeIndicators = {};
     this.componentElem.addEventListener(
@@ -113,6 +114,7 @@ class UiBuildingOverlay extends _UiComponent {
       var nextTier = 1;
       var maxTier = false;
       var canUpgrade = false;
+      var canDowngrade = buildingData.tier > 1;
       var currentStats = {};
       var nextStats = {};
       var buildingsToUpgrade = 1;
@@ -220,6 +222,18 @@ class UiBuildingOverlay extends _UiComponent {
       } else {
         this.upgradeElem.innerHTML =
           "Upgrade" + (costsHtml ? " <small>(" + costsHtml + ")</small>" : "");
+      }
+      if (this.downgradeElem) {
+        if (canDowngrade) {
+          this.downgradeElem.classList.remove("is-disabled");
+        } else {
+          this.downgradeElem.classList.add("is-disabled");
+        }
+        if (this.shouldUpgradeAll) {
+          this.downgradeElem.innerHTML = "Downgrade All";
+        } else {
+          this.downgradeElem.innerHTML = "Downgrade";
+        }
       }
       if (this.buildingId == "GoldStash") {
         this.offsetElem.style.display = "block";
@@ -437,11 +451,17 @@ class UiBuildingOverlay extends _UiComponent {
         '\n                        <a class="btn btn-gold hud-building-collect hud-building-export">Export Design</a>' +
         '\n                    </div>' +
         '\n                    <a class="btn btn-blue hud-building-offset">Offset</a>' +
-        '\n                    <a class="btn btn-green hud-building-upgrade">Upgrade</a>' +
+        '\n                    <div class="hud-building-dual-btn">' +
+        '\n                        <a class="btn btn-green hud-building-upgrade">Upgrade</a>' +
+        '\n                        <a class="btn btn-orange hud-building-downgrade">Downgrade</a>' +
+        '\n                    </div>' +
         '\n                    <a class="btn btn-red hud-building-sell">Sell</a>';
     } else {
       actionsHtml =
-        '\n                    <a class="btn btn-green hud-building-upgrade">Upgrade</a>' +
+        '\n                    <div class="hud-building-dual-btn">' +
+        '\n                        <a class="btn btn-green hud-building-upgrade">Upgrade</a>' +
+        '\n                        <a class="btn btn-orange hud-building-downgrade">Downgrade</a>' +
+        '\n                    </div>' +
         '\n                    <a class="btn btn-blue hud-building-offset" style="display:none;">Offset</a>' +
         '\n                    <a class="btn btn-red hud-building-sell">Sell</a>';
     }
@@ -466,9 +486,16 @@ class UiBuildingOverlay extends _UiComponent {
     this.upgradeElem = this.componentElem.querySelector(
       ".hud-building-upgrade",
     );
+    this.downgradeElem = this.componentElem.querySelector(
+      ".hud-building-downgrade",
+    );
     this.offsetElem = this.componentElem.querySelector(".hud-building-offset");
     this.sellElem = this.componentElem.querySelector(".hud-building-sell");
     this.upgradeElem.addEventListener("click", this.upgradeBuilding.bind(this));
+    this.downgradeElem.addEventListener(
+      "click",
+      this.downgradeBuilding.bind(this),
+    );
     this.offsetElem.addEventListener("click", this.offsetGoldStash.bind(this));
     this.sellElem.addEventListener("click", this.sellBuilding.bind(this));
 
@@ -542,6 +569,77 @@ class UiBuildingOverlay extends _UiComponent {
           name: "UpgradeBuilding",
           uid: this.buildingUid,
         });
+      }
+    }
+  }
+  downgradeBuilding() {
+    if (this.buildingUid) {
+      var buildingData = this.ui.getBuildings()[this.buildingUid];
+      if (!buildingData) return;
+
+      var buildingUid = this.buildingUid;
+      var buildingId = this.buildingId;
+      var buildingTier = this.buildingTier;
+      var shouldUpgradeAll = this.shouldUpgradeAll;
+
+      var executeDowngrade = function () {
+        if (shouldUpgradeAll) {
+          var buildings = _Game.currentGame.ui.getBuildings();
+          var uidsToDowngrade = [];
+          debug(
+            "Sending downgrade request for all buildings of type: %s, %d",
+            buildingId,
+            buildingTier,
+          );
+          for (var uid in buildings) {
+            if (
+              buildings[uid].type === buildingId &&
+              buildings[uid].tier === buildingTier
+            ) {
+              uidsToDowngrade.push(parseInt(uid));
+            }
+          }
+          for (var i = 0; i < uidsToDowngrade.length; i++) {
+            _Game.currentGame.network.sendRpc({
+              name: "DowngradeBuilding",
+              uid: uidsToDowngrade[i],
+            });
+          }
+        } else {
+          debug("Sending downgrade request for building: %d", buildingUid);
+          _Game.currentGame.network.sendRpc({
+            name: "DowngradeBuilding",
+            uid: buildingUid,
+          });
+        }
+      };
+
+      if (buildingId === "GoldStash") {
+        var nextTier = buildingData.tier - 1;
+        var willAffectOthers = false;
+        var buildings = this.ui.getBuildings();
+        for (var uid in buildings) {
+          if (buildings[uid].type !== "GoldStash" && buildings[uid].tier > nextTier) {
+            willAffectOthers = true;
+            break;
+          }
+        }
+
+        if (willAffectOthers && !this.hasConfirmedStashDowngrade) {
+          var self = this;
+          this.ui.components.PopupOverlay.showConfirmation(
+            "Downgrading the Gold Stash will also downgrade all towers that exceed tier " + nextTier + ". Are you sure?",
+            5000,
+            function () {
+              self.hasConfirmedStashDowngrade = true;
+              executeDowngrade();
+            }
+          );
+        } else {
+          executeDowngrade();
+        }
+      } else {
+        executeDowngrade();
       }
     }
   }

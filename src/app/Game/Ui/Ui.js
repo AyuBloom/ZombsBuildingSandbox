@@ -627,6 +627,10 @@ class Ui extends EventEmitter {
         buildingOverlay.upgradeBuilding();
         return;
       }
+      if (keyCode === 88) {
+        buildingOverlay.downgradeBuilding();
+        return;
+      }
       if (keyCode === 84) {
         buildingOverlay.sellBuilding();
         return;
