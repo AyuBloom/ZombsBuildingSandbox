@@ -3167,3 +3167,51 @@ main.privacy strong {
 [data-building="GoldStash"]::after {
   background-image: url("/asset/image/ui/entities/entities-gold-stash.svg");
 }
+
+/* Base Cost & Economy Auditor Styles */
+.hud-base-cost-counter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 6px 16px;
+  border-radius: 6px;
+  pointer-events: none;
+  margin: 0 auto 10px; /* Centered, with 10px spacing above the building toolbar */
+  width: max-content;
+  user-select: none;
+}
+
+.hud-base-cost-counter .hud-cost-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Hammersmith One", sans-serif;
+  font-size: 16px;
+  color: #eee;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.hud-base-cost-counter .hud-cost-item .icon {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.hud-base-cost-counter .hud-cost-item.wood .icon {
+  background-image: url("/asset/image/ui/entities/entities-tree.svg");
+}
+
+.hud-base-cost-counter .hud-cost-item.stone .icon {
+  background-image: url("/asset/image/ui/entities/entities-stone.svg");
+}
+
+.hud-base-cost-counter .hud-cost-item.gold .icon {
+  background-image: url("/asset/image/entity/player/player-base.svg");
+}
+

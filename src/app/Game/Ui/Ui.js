@@ -12,6 +12,7 @@ import _UiReconnect from "./UiReconnect";
 import _UiRespawn from "./UiRespawn";
 import _UiServerSwitcher from "./UiServerSwitcher";
 import _UiToolbar from "./UiToolbar";
+import _UiBaseCostCounter from "./UiBaseCostCounter";
 import { EventEmitter } from "events";
 var Debugger = require("debug");
 var debug = Debugger("Game:Ui/Ui");
@@ -93,6 +94,11 @@ class Ui extends EventEmitter {
       UiAnchor.TOP_RIGHT,
     );
     this.addComponent("Map", new _UiMap(this), UiAnchor.TOP_RIGHT);
+    this.addComponent(
+      "BaseCostCounter",
+      new _UiBaseCostCounter(this),
+      UiAnchor.BOTTOM_CENTER,
+    );
     this.addComponent("Toolbar", new _UiToolbar(this), UiAnchor.BOTTOM_CENTER);
     this.addComponent("MenuIcons", new _UiMenuIcons(this), UiAnchor.TOP_LEFT);
     this.addComponent("PipOverlay", new _UiPipOverlay(this));
