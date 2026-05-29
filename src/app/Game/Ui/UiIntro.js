@@ -1,5 +1,6 @@
 import _Game from "../../Engine/Game/Game";
 import _UiComponent from "./UiComponent";
+import _Util from "../../Engine/Util/Util";
 var request = require("browser-request");
 class UiIntro extends _UiComponent {
   constructor(ui) {
@@ -106,31 +107,7 @@ class UiIntro extends _UiComponent {
     const buildHash =
       typeof __BUILD_HASH__ !== "undefined" ? __BUILD_HASH__ : "";
     const buildDate = new Date(buildTimestamp);
-
-    const timeAgo = (date) => {
-      const seconds = Math.floor((new Date() - date) / 1000);
-      if (seconds < 1) return "just now";
-
-      const intervals = {
-        year: 31536000,
-        month: 2592000,
-        week: 604800,
-        day: 86400,
-        hour: 3600,
-        minute: 60,
-        second: 1,
-      };
-
-      for (const [unit, value] of Object.entries(intervals)) {
-        const count = Math.floor(seconds / value);
-        if (count >= 1) {
-          return `${count} ${unit}${count > 1 ? "s" : ""} ago`;
-        }
-      }
-      return "just now";
-    };
-
-    const elapsed = timeAgo(buildDate);
+    const elapsed = _Util.timeAgo(buildDate);
     if (buildHash) {
       lastUpdatedElem.href = `https://github.com/AyuBloom/ZombsBuildingSandbox/commit/${buildHash}`;
       lastUpdatedElem.textContent = `Last updated: ${elapsed} (${buildHash})`;
@@ -152,10 +129,13 @@ class UiIntro extends _UiComponent {
         opt.textContent = opt.textContent.replace(/\s*\(Locked\)$/, "");
       } else {
         opt.setAttribute("disabled", "true");
+        /*
         if (!/\(Locked\)$/.test(opt.textContent)) {
           opt.textContent = opt.textContent + " (Locked)";
         }
+        */
       }
+      opt.textContent += ` [${serverId}]`;
     }
   }
   hide() {
@@ -191,8 +171,8 @@ class UiIntro extends _UiComponent {
     this.submitElem.removeAttribute("disabled");
     this.submitElem.style.opacity = "1";
 
-    const info = window.serverspots[serverId].spotinfo || "825 entities";
-    if (this.statsElem) this.statsElem.innerText = info;
+    const info = _Util.timeAgo(window.serverspots[serverId].lastScanned) || "Unknown";
+    if (this.statsElem) this.statsElem.innerText = `Last scanned: ${info}`;
 
     const spots = window.decodeSpotJSON(
       window.serverspots[serverId].spotEncoded,
