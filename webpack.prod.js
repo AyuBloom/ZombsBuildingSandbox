@@ -6,11 +6,16 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const webpack = require("webpack");
 const { execSync } = require("child_process");
 
+let buildTimestamp = Date.now();
 let buildHash = "";
 try {
-  buildHash = execSync("git rev-parse --short HEAD").toString().trim();
+  const timestampSec = parseInt(execSync('git log -n 1 --format="%ct" main').toString().trim(), 10);
+  if (!isNaN(timestampSec)) {
+    buildTimestamp = timestampSec * 1000;
+  }
+  buildHash = execSync("git rev-parse --short main").toString().trim();
 } catch (e) {
-  console.error("Failed to get git commit hash:", e);
+  console.error("Failed to get main branch git info:", e);
 }
 
 module.exports = {
@@ -74,7 +79,7 @@ module.exports = {
   },
   plugins: [
     new webpack.DefinePlugin({
-      __BUILD_TIMESTAMP__: Date.now(),
+      __BUILD_TIMESTAMP__: buildTimestamp,
       __BUILD_HASH__: JSON.stringify(buildHash),
     }),
     new HtmlWebpackPlugin({

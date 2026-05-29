@@ -106,7 +106,7 @@ class UiIntro extends _UiComponent {
     const buildTimestamp =
       typeof __BUILD_TIMESTAMP__ !== "undefined"
         ? __BUILD_TIMESTAMP__
-        : "Unknown";
+        : Date.now();
     const buildHash =
       typeof __BUILD_HASH__ !== "undefined" ? __BUILD_HASH__ : "";
     const buildDate = new Date(buildTimestamp);
@@ -114,8 +114,10 @@ class UiIntro extends _UiComponent {
     if (buildHash) {
       lastUpdatedElem.href = `https://github.com/AyuBloom/ZombsBuildingSandbox/commit/${buildHash}`;
       lastUpdatedElem.textContent = `Last updated: ${elapsed} (${buildHash})`;
+      lastUpdatedElem.title = `Built on ${buildDate.toLocaleString()} from main branch`;
     } else {
       lastUpdatedElem.textContent = `Last Updated: ${elapsed}`;
+      lastUpdatedElem.title = `Built on ${buildDate.toLocaleString()}`;
     }
   }
   updateServerOptions() {
