@@ -1,6 +1,7 @@
 import _Game from "../../Engine/Game/Game";
 import _UiComponent from "./UiComponent";
 import _Util from "../../Engine/Util/Util";
+import UiSpotScout from "./UiSpotScout";
 var request = require("browser-request");
 class UiIntro extends _UiComponent {
   constructor(ui) {
@@ -94,7 +95,9 @@ class UiIntro extends _UiComponent {
     this.updateServerOptions();
     this.updatePreview();
     this.fetchLastUpdated();
+    this.spotScout = new UiSpotScout(ui, this);
   }
+
   fetchLastUpdated() {
     const lastUpdatedElem = this.componentElem.querySelector("#last-updated");
     if (!lastUpdatedElem) return;

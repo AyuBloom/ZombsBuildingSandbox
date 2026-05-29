@@ -3245,3 +3245,224 @@ main.privacy strong {
   background-image: url("/asset/image/entity/player/player-base.svg");
 }
 
+/* Spot Scout Modal & Elements */
+.spotscout-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.spotscout-modal-content {
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  width: 720px;
+  max-width: 90%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.spotscout-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 25px;
+}
+
+.spotscout-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #eee;
+  letter-spacing: 0.5px;
+}
+
+.spotscout-modal-close {
+  color: #888;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.spotscout-modal-close:hover {
+  color: #eee;
+}
+
+.spotscout-modal-body {
+  padding: 0 25px 25px;
+  min-height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spotscout-dropzone {
+  width: 100%;
+  height: 220px;
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+}
+
+.spotscout-dropzone.dragover {
+  border-color: #eee;
+}
+
+.spotscout-dropzone p {
+  margin: 0 0 5px;
+  font-size: 14px;
+  color: #ccc;
+}
+
+.spotscout-file {
+    color: #ccc;
+    transition: all 0.15s ease-in-out;
+}
+
+.spotscout-file:active, .spotscout-file:hover {
+    color: #eee;
+}
+
+.spotscout-workspace {
+  display: flex;
+  flex-direction: row;
+  gap: 25px;
+  width: 100%;
+  align-items: stretch;
+  justify-content: space-between;
+}
+
+.spotscout-canvas-container {
+  position: relative;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.spotscout-canvas-container canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  cursor: crosshair;
+}
+
+.spotscout-scanner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(to bottom, rgba(46, 204, 113, 0), rgba(46, 204, 113, 0.8), rgba(46, 204, 113, 0));
+  box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+  animation: spotScoutSweep 2s infinite linear;
+  pointer-events: none;
+}
+
+@keyframes spotScoutSweep {
+  0% { top: 0%; }
+  50% { top: 100%; }
+  100% { top: 0%; }
+}
+
+.spotscout-sidebar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 200px;
+  max-width: 300px;
+  text-align: left;
+}
+
+.spotscout-status {
+  padding: 10px 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  font-size: 13px;
+  color: #eee;
+  font-family: 'Open Sans', sans-serif;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.spotscout-manual-controls {
+  margin-bottom: 15px;
+}
+
+.spotscout-instructions {
+  margin: 0 0 10px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.4;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.spotscout-tool-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.spotscout-tool-btn {
+  height: 34px !important;
+  line-height: 34px !important;
+  font-size: 12px !important;
+  text-align: left !important;
+  padding: 0 15px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  opacity: 0.7;
+}
+
+.spotscout-tool-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  opacity: 1;
+}
+
+.spotscout-tool-btn.active {
+  background: rgba(72, 149, 13, 0.1) !important;
+  border-color: #47950d !important;
+  opacity: 1;
+  font-weight: bold;
+}
+
+.hud-intro-spotscout {
+  position: relative;
+  overflow: hidden;
+}
+
+.hud-intro-spotscout::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: rotate(45deg);
+  animation: spotScoutShimmer 3s infinite linear;
+}
+
+@keyframes spotScoutShimmer {
+  0% { transform: translate(-100%, -100%) rotate(45deg); }
+  100% { transform: translate(100%, 100%) rotate(45deg); }
+}

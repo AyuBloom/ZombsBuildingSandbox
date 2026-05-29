@@ -66,6 +66,9 @@
             <button type="submit" class="btn btn-green hud-intro-play">
               Start Sandbox
             </button>
+            <button type="button" class="btn btn-blue hud-intro-spotscout" id="hud-intro-spotscout" style="margin-top: 10px; width: 100%;">
+              Spot Scout
+            </button>
             <span class="hud-intro-error"></span>
           </div>
           <div class="hud-intro-preview">
@@ -121,6 +124,51 @@
             target="_blank"
             class="btn btn-discord hud-name-social-discord"
           ></a>
+        </div>
+      </div>
+
+      <!-- Spot Scout Modal -->
+      <div id="spotscout-modal" class="spotscout-modal" style="display: none;">
+        <div class="spotscout-modal-content">
+          <div class="spotscout-modal-header">
+            <h3>Spot Scout</h3>
+            <span class="spotscout-modal-close" id="spotscout-close">&times;</span>
+          </div>
+          <div class="spotscout-modal-body">
+            <!-- Dropzone View -->
+            <div id="spotscout-dropzone" class="spotscout-dropzone">
+              <p>Drag & drop / paste spot image here</p>
+              <span style="font-size: 12px; color: rgba(255,255,255,0.4); margin: 5px 0;">or</span>
+              <a id="spotscout-file" class="spotscout-file" href="javascript:void(0);">Choose Image</a>
+              <input type="file" id="spotscout-file-input" style="display: none;" accept="image/*" />
+            </div>
+
+            <!-- Scanner / Calibration Workspace -->
+            <div id="spotscout-workspace" class="spotscout-workspace" style="display: none;">
+              <div class="spotscout-canvas-container">
+                <canvas id="spotscout-canvas"></canvas>
+                <div id="spotscout-scanner" class="spotscout-scanner" style="display: none;"></div>
+              </div>
+              <div class="spotscout-sidebar">
+                <div class="spotscout-status" id="spotscout-status">
+                  Analyzing image...
+                </div>
+                <div class="spotscout-manual-controls" id="spotscout-manual-controls" style="display: none;">
+                  <p class="spotscout-instructions">Auto-detection uncertain. Tap 3 or more resource nodes on the image, then click 'Find Spot' to locate:</p>
+                  <div class="spotscout-tool-selector">
+                    <button type="button" class="btn spotscout-tool-btn active" data-type="Tree">Tree</button>
+                    <button type="button" class="btn spotscout-tool-btn" data-type="Stone">Stone</button>
+                    <button type="button" class="btn spotscout-tool-btn" data-type="NeutralCamp">Neutral Camp</button>
+                  </div>
+                  <button type="button" class="btn btn-green" id="spotscout-solve-btn" style="margin-top: 10px; width: 100%;">Find Spot</button>
+                  <button type="button" class="btn btn-red" id="spotscout-clear-btn" style="margin-top: 10px; width: 100%;">Clear Markers</button>
+                </div>
+                <div class="spotscout-result" id="spotscout-result" style="display: none;">
+                  <!-- Results populated dynamically -->
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
