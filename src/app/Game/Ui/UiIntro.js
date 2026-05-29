@@ -109,8 +109,7 @@ class UiIntro extends _UiComponent {
         : "Unknown";
     const buildHash =
       typeof __BUILD_HASH__ !== "undefined" ? __BUILD_HASH__ : "";
-    const buildDate = new Date(buildTimestamp);
-    const elapsed = _Util.timeAgo(buildDate);
+    const elapsed = _Util.timeAgo(buildTimestamp);
     if (buildHash) {
       lastUpdatedElem.href = `https://github.com/AyuBloom/ZombsBuildingSandbox/commit/${buildHash}`;
       lastUpdatedElem.textContent = `Last updated: ${elapsed} (${buildHash})`;
