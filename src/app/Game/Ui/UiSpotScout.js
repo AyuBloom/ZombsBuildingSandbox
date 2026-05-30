@@ -1,5 +1,5 @@
 import _UiComponent from "./UiComponent";
-import SpotScout from "../Util/SpotScout";
+import SpotScout from "../../Engine/Util/SpotScout";
 
 class UiSpotScout extends _UiComponent {
   constructor(ui, intro) {
@@ -128,8 +128,8 @@ class UiSpotScout extends _UiComponent {
       const cy = e.clientY - rect.top;
 
       // Translate to image pixel coordinate space
-      const imgX = (cx / this.spotScoutCanvas.width) * this.loadedImageWidth;
-      const imgY = (cy / this.spotScoutCanvas.height) * this.loadedImageHeight;
+      const imgX = (cx / rect.width) * this.loadedImageWidth;
+      const imgY = (cy / rect.height) * this.loadedImageHeight;
 
       this.customMarkers.push({
         x: imgX,
