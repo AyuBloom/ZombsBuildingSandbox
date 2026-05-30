@@ -1,11 +1,91 @@
 class SpotScout {
+  // Known constants for night overlay correction
+  // The zombs.io day-night cycle uses: background: rgba(17, 8, 56, 0.4) with varying element opacity
+  static DAYTIME_BG = [110, 140, 70];
+  static OVERLAY_RGB = [17, 8, 56];
+
+  /**
+   * Sample the dominant background color from image data via sparse histogram.
+   * The background is always the most frequent color (~75-81% of pixels).
+   * @param {Uint8ClampedArray} data Raw pixel data
+   * @param {number} width Image width
+   * @param {number} height Image height
+   * @returns {{ r: number, g: number, b: number }}
+   */
+  static sampleBackground(data, width, height) {
+    const colorCounts = {};
+    const step = 4;
+    for (let y = 0; y < height; y += step) {
+      for (let x = 0; x < width; x += step) {
+        const idx = (y * width + x) << 2;
+        const r = data[idx], g = data[idx + 1], b = data[idx + 2];
+        // Quantize to 5-value buckets for tight clustering
+        const qr = Math.round(r / 5) * 5;
+        const qg = Math.round(g / 5) * 5;
+        const qb = Math.round(b / 5) * 5;
+        const key = (qr << 16) | (qg << 8) | qb;
+        colorCounts[key] = (colorCounts[key] || 0) + 1;
+      }
+    }
+
+    let maxCount = 0, dominant = 0;
+    for (const [key, count] of Object.entries(colorCounts)) {
+      if (count > maxCount) {
+        maxCount = count;
+        dominant = +key;
+      }
+    }
+
+    return {
+      r: (dominant >> 16) & 0xFF,
+      g: (dominant >> 8) & 0xFF,
+      b: dominant & 0xFF
+    };
+  }
+
+  /**
+   * Estimate the effective night overlay alpha from the dominant background color.
+   * Uses least-squares fit: minimize sum((bg_i - (orig_i*(1-a) + ov_i*a))^2) over RGB channels.
+   * Solution: a = sum((orig_i - bg_i)*(orig_i - ov_i)) / sum((orig_i - ov_i)^2)
+   * @param {number} bgR Sampled background red
+   * @param {number} bgG Sampled background green
+   * @param {number} bgB Sampled background blue
+   * @returns {number} Estimated effective alpha (0 = daytime, ~0.4 = full night)
+   */
+  static estimateNightAlpha(bgR, bgG, bgB) {
+    const [oR, oG, oB] = SpotScout.DAYTIME_BG;
+    const [vR, vG, vB] = SpotScout.OVERLAY_RGB;
+
+    const num = (oR - bgR) * (oR - vR) + (oG - bgG) * (oG - vG) + (oB - bgB) * (oB - vB);
+    const den = (oR - vR) ** 2 + (oG - vG) ** 2 + (oB - vB) ** 2;
+
+    // Clamp to valid range: max effective alpha is ~0.45 (0.4 * opacity where opacity <= 1)
+    return Math.max(0, Math.min(0.45, num / den));
+  }
+
   /**
    * Detect Tree, Stone, and NeutralCamp nodes from raw ImageData with merging and edge-clipped detection.
+   * Automatically compensates for the in-game day-night overlay by estimating the tint
+   * from the background color and applying the inverse transformation before classification.
    * @param {ImageData} imageData Object with { data, width, height }
    * @returns {Array} List of detected nodes: { x, y, type, size, touchesEdge }
    */
   static detectNodes(imageData) {
     const { data, width, height } = imageData;
+
+    // Step 1: Estimate night overlay alpha from background color
+    const bg = SpotScout.sampleBackground(data, width, height);
+    const nightAlpha = SpotScout.estimateNightAlpha(bg.r, bg.g, bg.b);
+
+    // Precompute inverse overlay constants for pixel normalization
+    // Formula: original = (observed - overlay * a) / (1 - a)
+    const [vR, vG, vB] = SpotScout.OVERLAY_RGB;
+    const inv = nightAlpha > 0.01 ? 1 / (1 - nightAlpha) : 1;
+    const offsetR = nightAlpha > 0.01 ? vR * nightAlpha : 0;
+    const offsetG = nightAlpha > 0.01 ? vG * nightAlpha : 0;
+    const offsetB = nightAlpha > 0.01 ? vB * nightAlpha : 0;
+    const needsNormalization = nightAlpha > 0.01;
+
     const visited = new Uint8Array(width * height);
     const nodes = [];
 
@@ -14,8 +94,16 @@ class SpotScout {
       return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2);
     }
 
-    // Classify pixel colors based on standard Zombs resource palettes
+    // Classify pixel colors based on standard Zombs resource palettes.
+    // Pixels are first normalized to remove the night overlay before comparison.
     function classifyPixel(r, g, b) {
+      // Normalize pixel to daytime colors if night overlay is present
+      if (needsNormalization) {
+        r = Math.max(0, Math.min(255, (r - offsetR) * inv));
+        g = Math.max(0, Math.min(255, (g - offsetG) * inv));
+        b = Math.max(0, Math.min(255, (b - offsetB) * inv));
+      }
+
       if (colorDist(r, g, b, 179, 179, 179) < 22) return "Stone";
       if (colorDist(r, g, b, 201, 201, 201) < 22) return "Stone";
       if (colorDist(r, g, b, 186, 54, 63) < 30) return "NeutralCamp";
@@ -77,6 +165,15 @@ class SpotScout {
 
         // Blob size constraints: filter noise, keep actual game nodes
         if (cnt >= 200 && cnt < 20000) {
+          // Blob shape validation: reject elongated blobs (grid lines, UI artifacts)
+          const blobW = maxX - minX + 1;
+          const blobH = maxY - minY + 1;
+          const aspectRatio = Math.max(blobW, blobH) / Math.max(1, Math.min(blobW, blobH));
+          const compactness = cnt / (blobW * blobH);
+
+          // Resources are roughly circular: aspect ratio < 3 and compactness > 0.2
+          if (aspectRatio > 3.0 || compactness < 0.2) continue;
+
           const edgeMargin = 3;
           const touchesEdge = (minX <= edgeMargin || maxX >= width - 1 - edgeMargin ||
                                minY <= edgeMargin || maxY >= height - 1 - edgeMargin);
