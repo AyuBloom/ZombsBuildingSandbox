@@ -95,6 +95,7 @@ class UiIntro extends _UiComponent {
     this.updateServerOptions();
     this.updatePreview();
     this.fetchLastUpdated();
+    this.initDecorations();
     this.spotScout = new UiSpotScout(ui, this);
   }
 
@@ -577,14 +578,33 @@ class UiIntro extends _UiComponent {
   checkForPartyInvitation() {
     var This = this;
     if (document.location.hash && !(document.location.hash.length < 2)) {
-      var parts = document.location.hash.substring(2).split("/");
-      var serverId = parts[0];
-      var shareKey = parts[1];
+      // Extract hash content, removing leading '#' and optional leading '/'
+      let hashContent = document.location.hash.substring(1);
+      if (hashContent.startsWith("/")) {
+        hashContent = hashContent.substring(1);
+      }
+      
+      const parts = hashContent.split("/").filter(part => part.length > 0);
+      
+      // Get base path if defined in Webpack, defaulting to "/"
+      const basePath = typeof __BASE_PATH__ !== "undefined" ? __BASE_PATH__ : "/";
+      const cleanBasePath = basePath.replace(/^\/+|\/+$/g, "").toLowerCase();
+      
+      // Clean up parts by filtering out the base path or "sandbox" keywords
+      const cleanedParts = parts.filter(part => {
+        const cleanPart = part.replace(/^\/+|\/+$/g, "").toLowerCase();
+        return cleanPart !== cleanBasePath && cleanPart !== "sandbox";
+      });
+
+      const serverId = cleanedParts[0];
+      const shareKey = cleanedParts[1];
+
       if (serverId && shareKey) {
         this.serverElem.setAttribute("disabled", "true");
-        this.serverElem
-          .querySelector('option[value="' + serverId + '"]')
-          .setAttribute("selected", "true");
+        const opt = this.serverElem.querySelector('option[value="' + serverId + '"]');
+        if (opt) {
+          opt.setAttribute("selected", "true");
+        }
         this.partyShareKey = shareKey;
         _Game.currentGame.network.addEnterWorldHandler(function (data) {
           if (data.allowed && !This.reconnectKey) {
@@ -595,6 +615,45 @@ class UiIntro extends _UiComponent {
           }
         });
       }
+    }
+  }
+  initDecorations() {
+    const decorLayer = document.createElement("div");
+    decorLayer.className = "hud-intro-decor-layer";
+    this.componentElem.appendChild(decorLayer);
+
+    const numDecorations = 5 + Math.floor(Math.random() * 5); // 5 to 9 decor items
+    this.decorElements = [];
+
+    for (let i = 0; i < numDecorations; i++) {
+      const isTree = Math.random() < 0.6; // 60% trees, 40% stones
+      const decorWrapper = document.createElement("div");
+      decorWrapper.className = "hud-intro-decor";
+
+      const child = document.createElement("div");
+      child.className = isTree ? "hud-intro-tree" : "hud-intro-stone";
+
+      // Random coordinates (percentage of screen)
+      let left = Math.random() * 100;
+      let top = Math.random() * 100;
+
+      // Smart positioning: avoid spawning them right under the main box in the center
+      // Main box is roughly between 25% and 75% horizontally, and 15% and 85% vertically
+      for (let attempt = 0; attempt < 50; attempt++) {
+        if (left > 25 && left < 75 && top > 15 && top < 85) {
+          left = Math.random() * 100;
+          top = Math.random() * 100;
+        } else {
+          break;
+        }
+      }
+
+      decorWrapper.style.left = left + "%";
+      decorWrapper.style.top = top + "%";
+
+      decorWrapper.appendChild(child);
+      decorLayer.appendChild(decorWrapper);
+      this.decorElements.push(decorWrapper);
     }
   }
   onWheel(event) {
