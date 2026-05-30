@@ -583,13 +583,13 @@ class UiIntro extends _UiComponent {
       if (hashContent.startsWith("/")) {
         hashContent = hashContent.substring(1);
       }
-      
+
       const parts = hashContent.split("/").filter(part => part.length > 0);
-      
+
       // Get base path if defined in Webpack, defaulting to "/"
       const basePath = typeof __BASE_PATH__ !== "undefined" ? __BASE_PATH__ : "/";
       const cleanBasePath = basePath.replace(/^\/+|\/+$/g, "").toLowerCase();
-      
+
       // Clean up parts by filtering out the base path or "sandbox" keywords
       const cleanedParts = parts.filter(part => {
         const cleanPart = part.replace(/^\/+|\/+$/g, "").toLowerCase();
@@ -597,23 +597,12 @@ class UiIntro extends _UiComponent {
       });
 
       const serverId = cleanedParts[0];
-      const shareKey = cleanedParts[1];
-
-      if (serverId && shareKey) {
+      if (serverId) {
         this.serverElem.setAttribute("disabled", "true");
         const opt = this.serverElem.querySelector('option[value="' + serverId + '"]');
         if (opt) {
           opt.setAttribute("selected", "true");
         }
-        this.partyShareKey = shareKey;
-        _Game.currentGame.network.addEnterWorldHandler(function (data) {
-          if (data.allowed && !This.reconnectKey) {
-            _Game.currentGame.network.sendRpc({
-              name: "JoinPartyByShareKey",
-              partyShareKey: This.partyShareKey,
-            });
-          }
-        });
       }
     }
   }
