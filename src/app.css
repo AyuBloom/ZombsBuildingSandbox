@@ -3493,3 +3493,523 @@ main.privacy strong {
   line-height: 50px;
   cursor: pointer;
 }
+
+/* ==========================================
+   MOBILE SUPPORT & JOYSTICK STYLES
+   ========================================== */
+
+.hud-mobile-controls {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.is-mobile-touch .hud-mobile-controls {
+  display: block;
+}
+
+.hud-mobile-joystick-container {
+  position: absolute;
+  bottom: 40px;
+  left: 40px;
+  width: 160px;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none; /* Disable pointer events by default so background touches are not blocked */
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out, transform 0.15s ease-in-out;
+}
+
+.hud-mobile-joystick-container.semi-visible {
+  opacity: 0.25;
+  pointer-events: auto;
+}
+
+.hud-mobile-joystick-container.active {
+  opacity: 0.8;
+  pointer-events: auto;
+}
+
+.joystick-outer {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), inset 0 0 15px rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  touch-action: none;
+  transition: border-color 0.15s ease-in-out;
+}
+
+.joystick-inner {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+}
+
+.joystick-outer:active .joystick-inner {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 2px 15px rgba(255, 255, 255, 0.15);
+}
+
+.hud-mobile-sidebar-container {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translate3d(0, -50%, 0);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  z-index: 12;
+  pointer-events: auto;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hud-mobile-sidebar-container.collapsed {
+  transform: translate3d(106px, -50%, 0);
+}
+
+.hud-mobile-sidebar-toggle {
+  width: 26px;
+  height: 60px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: none;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: none;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
+  font-family: "Hammersmith One", sans-serif;
+  outline: none;
+  padding: 0;
+}
+
+.hud-mobile-sidebar-toggle:active {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.hud-mobile-sidebar-drawer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 8px;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: none;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+  box-shadow: -4px 0 15px rgba(0, 0, 0, 0.4);
+  width: 106px;
+  box-sizing: border-box;
+}
+
+.hud-mobile-sidebar-drawer .hud-mobile-btn {
+  width: 90px !important;
+  height: 48px !important;
+  border-radius: 12px !important;
+  font-size: 11px !important;
+  padding: 2px !important;
+  margin: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.hud-mobile-sidebar-drawer .hud-mobile-btn .btn-label {
+  font-size: 9px !important;
+  margin: 0 !important;
+  line-height: 12px !important;
+}
+
+.hud-mobile-sidebar-drawer .hud-mobile-btn .btn-sublabel {
+  font-size: 12px !important;
+  margin: 0 !important;
+  line-height: 14px !important;
+}
+
+.hud-mobile-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #eee;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  font-family: "Hammersmith One", sans-serif;
+  font-size: 13px;
+  text-transform: uppercase;
+  text-align: center;
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+  touch-action: none;
+  text-shadow: 1px 1px #111, -1px 1px #111, 1px -1px #111, -1px -1px #111;
+}
+
+.hud-mobile-btn:active {
+  transform: scale(0.92);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.hud-btn-rotate {
+  background: rgba(191, 101, 9, 0.5);
+  border-color: rgba(191, 123, 60, 0.4);
+}
+.hud-btn-rotate:active {
+  background: rgba(191, 101, 9, 0.75);
+}
+
+.hud-btn-cancel {
+  background: rgba(179, 53, 60, 0.5);
+  border-color: rgba(203, 87, 91, 0.4);
+}
+.hud-btn-cancel:active {
+  background: rgba(179, 53, 60, 0.75);
+}
+
+.hud-btn-upgrade-all {
+  border-radius: 20px;
+  width: 90px;
+  height: 52px;
+  background: rgba(0, 0, 0, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+  padding: 4px;
+}
+.hud-btn-upgrade-all .btn-label {
+  font-size: 10px;
+  color: #aaa;
+  text-shadow: none;
+}
+.hud-btn-upgrade-all .btn-sublabel {
+  font-size: 13px;
+  color: #ff4d4d;
+  font-weight: bold;
+}
+.hud-btn-upgrade-all.active {
+  background: rgba(71, 149, 13, 0.7);
+  border-color: rgba(100, 184, 32, 0.5);
+}
+.hud-btn-upgrade-all.active .btn-label {
+  color: #eee;
+}
+.hud-btn-upgrade-all.active .btn-sublabel {
+  color: #55ff55;
+}
+
+/* ==========================================
+   RESPONSIVE DESIGN & MEDIA QUERIES
+   ========================================== */
+
+/* Universal Mobile Overrides */
+@media (max-width: 768px) {
+  /* Swipeable Horizontal In-game Toolbar */
+  .hud-toolbar {
+    width: 95vw !important;
+    max-width: 100vw !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap !important;
+    background: rgba(0, 0, 0, 0.45) !important;
+    border-radius: 4px;
+    padding: 6px 10px !important;
+  }
+  
+  .hud-toolbar .hud-toolbar-buildings {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 6px !important;
+    margin: 0 !important;
+  }
+  
+  .hud-toolbar .hud-toolbar-buildings .hud-toolbar-building {
+    flex: 0 0 48px !important;
+    width: 48px !important;
+    height: 48px !important;
+    line-height: 48px !important;
+    margin: 0 !important;
+  }
+  
+  .hud-toolbar .hud-toolbar-buildings .hud-toolbar-building::after {
+    width: 36px !important;
+    height: 36px !important;
+    margin: 6px auto !important;
+  }
+  
+  .hud-toolbar .hud-toolbar-buildings .hud-toolbar-building::before {
+    display: none !important;
+  }
+  
+  /* Spot Scout Modal Responsiveness */
+  .spotscout-modal-content {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+  }
+  
+  .spotscout-workspace {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 15px !important;
+  }
+  
+  .spotscout-canvas-container {
+    width: 100% !important;
+    max-width: 280px !important;
+  }
+  
+  .spotscout-canvas-container canvas {
+    width: 100% !important;
+    height: auto !important;
+  }
+  
+  .spotscout-sidebar {
+    width: 100% !important;
+    max-width: 280px !important;
+  }
+}
+
+/* Portrait Mobile Viewport Heights (Stacked Layout) */
+@media (max-width: 768px) and (min-height: 521px) {
+  .hud-intro .hud-intro-wrapper {
+    padding: 20px 10px !important;
+    height: 100vh !important;
+    justify-content: flex-start !important;
+    overflow-y: auto !important;
+  }
+  
+  .hud-intro h1 {
+    font-size: 28px !important;
+    margin-top: 10px !important;
+  }
+  
+  .hud-intro h2 {
+    font-size: 12px !important;
+  }
+  
+  .hud-intro .hud-intro-main {
+    flex-direction: column !important;
+    margin: 15px auto !important;
+    gap: 12px !important;
+    align-items: center !important;
+  }
+  
+  .hud-intro .hud-intro-form,
+  .hud-intro .hud-intro-main .hud-intro-preview {
+    width: 280px !important;
+    padding: 12px !important;
+  }
+  
+  .hud-intro .hud-intro-form .hud-intro-server,
+  .hud-intro .hud-intro-form .hud-intro-play,
+  .hud-intro-spotscout {
+    height: 42px !important;
+    line-height: 42px !important;
+    font-size: 13px !important;
+  }
+  
+  .hud-intro .hud-intro-main .hud-intro-preview .canvas-container,
+  .hud-intro .hud-intro-main .hud-intro-preview canvas {
+    width: 180px !important;
+    height: 180px !important;
+  }
+  
+  .hud-intro .hud-intro-footer {
+    position: static !important;
+    margin: 20px auto 10px !important;
+    font-size: 11px !important;
+    width: 100% !important;
+    text-align: center !important;
+  }
+  
+  .hud-intro .hud-intro-corner-bottom-left {
+    position: static !important;
+    margin: 5px auto !important;
+    display: flex !important;
+    justify-content: center !important;
+  }
+}
+
+/* Landscape / Short Mobile Viewports (Side-by-Side Scaled Layout) */
+@media (max-height: 520px) {
+  .hud-intro .hud-intro-wrapper {
+    margin: 0 !important;
+    padding: 5px !important;
+    height: 100vh !important;
+    justify-content: flex-start !important;
+    overflow-y: auto !important;
+  }
+  
+  .hud-intro h1 {
+    font-size: 22px !important;
+    margin-top: 5px !important;
+  }
+  
+  .hud-intro h2 {
+    font-size: 10px !important;
+    margin-bottom: 5px !important;
+  }
+  
+  .hud-intro .hud-intro-main {
+    margin: 5px auto !important;
+    gap: 15px !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+  }
+  
+  .hud-intro .hud-intro-form,
+  .hud-intro .hud-intro-main .hud-intro-preview {
+    width: 250px !important;
+    padding: 10px !important;
+    margin: 0 !important;
+  }
+  
+  .hud-intro .hud-intro-form .hud-intro-server,
+  .hud-intro .hud-intro-form .hud-intro-play,
+  .hud-intro-spotscout {
+    height: 36px !important;
+    line-height: 36px !important;
+    font-size: 12px !important;
+    margin-top: 5px !important;
+  }
+  
+  .hud-intro .hud-intro-main .hud-intro-preview h3 {
+    font-size: 13px !important;
+    margin-bottom: 2px !important;
+  }
+  
+  .hud-intro .hud-intro-main .hud-intro-preview .hud-intro-preview-stats {
+    font-size: 10px !important;
+    margin-bottom: 4px !important;
+  }
+  
+  .hud-intro .hud-intro-main .hud-intro-preview .canvas-container,
+  .hud-intro .hud-intro-main .hud-intro-preview canvas {
+    width: 120px !important;
+    height: 120px !important;
+    margin: 0 auto !important;
+  }
+  
+  .hud-intro .hud-intro-main .hud-intro-preview .hud-intro-preview-coords {
+    margin-top: 4px !important;
+    font-size: 9px !important;
+  }
+  
+  .hud-intro .hud-intro-preview-help {
+    display: none !important; /* Hide to save screen space */
+  }
+  
+  .hud-intro .hud-intro-footer {
+    position: static !important;
+    margin: 10px auto !important;
+    text-align: center !important;
+    font-size: 11px !important;
+    width: 100% !important;
+    display: block !important;
+  }
+  
+  .hud-intro .hud-intro-corner-bottom-left {
+    position: static !important;
+    margin: 5px auto !important;
+    display: flex !important;
+    justify-content: center !important;
+  }
+}
+
+/* Sprint Button Styling */
+.hud-btn-sprint {
+  border-radius: 20px;
+  width: 90px;
+  height: 52px;
+  background: rgba(0, 0, 0, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+  padding: 4px;
+}
+.hud-btn-sprint .btn-label {
+  font-size: 10px;
+  color: #aaa;
+  text-shadow: none;
+}
+.hud-btn-sprint .btn-sublabel {
+  font-size: 13px;
+  color: #ff4d4d;
+  font-weight: bold;
+}
+.hud-btn-sprint.active {
+  background: rgba(71, 149, 13, 0.7) !important;
+  border-color: rgba(100, 184, 32, 0.5) !important;
+}
+.hud-btn-sprint.active .btn-label {
+  color: #eee !important;
+}
+.hud-btn-sprint.active .btn-sublabel {
+  color: #55ff55 !important;
+}
+
+/* Mobile Settings Overrides with Safe Area & Small Viewport (svh) Support */
+@media (max-width: 768px) {
+  .hud-menu-settings {
+    width: 95% !important;
+    max-width: 520px !important;
+    height: auto !important;
+    max-height: 90vh !important;
+    max-height: 90svh !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0 !important;
+    padding: calc(12px + env(safe-area-inset-top, 0px)) 15px calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+  
+  .hud-menu-settings .hud-settings-grid {
+    height: auto !important;
+    max-height: calc(90vh - 70px) !important;
+    max-height: calc(90svh - 70px) !important;
+    margin-top: 10px !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch; /* smooth scrolling inside Safari/iOS */
+  }
+}

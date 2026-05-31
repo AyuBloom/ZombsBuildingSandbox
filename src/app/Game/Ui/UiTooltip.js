@@ -22,74 +22,116 @@ class UiTooltip {
       delete this.tooltipElem;
     }
   }
-  bindInputEvents() {
+  showTooltip() {
+    if (this.tooltipElem) return;
+
     var This = this;
-    this.targetElem.addEventListener("mouseenter", function (event) {
-      if (This.hideTimeout) {
-        clearTimeout(This.hideTimeout);
-        This.hideTimeout = null;
-      }
-      if (This.tooltipElem) return;
+    var tooltipHtml =
+      '\n            <div id="hud-tooltip" class="hud-tooltip">\n                ' +
+      this.callback(this.targetElem) +
+      "\n            </div>\n            ";
+    document.body.insertAdjacentHTML("beforeend", tooltipHtml);
+    this.tooltipElem = document.getElementById("hud-tooltip");
 
-      var tooltipHtml =
-        '\n            <div id="hud-tooltip" class="hud-tooltip">\n                ' +
-        This.callback(This.targetElem) +
-        "\n            </div>\n            ";
-      document.body.insertAdjacentHTML("beforeend", tooltipHtml);
-      This.tooltipElem = document.getElementById("hud-tooltip");
-
-      // Bind hover events on the tooltip itself to allow interaction
-      This.tooltipElem.addEventListener("mouseenter", function () {
+    var isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    if (!isMobile) {
+      // Bind hover events on the tooltip itself to allow interaction (only on desktop)
+      this.tooltipElem.addEventListener("mouseenter", function () {
         if (This.hideTimeout) {
           clearTimeout(This.hideTimeout);
           This.hideTimeout = null;
         }
       });
-      This.tooltipElem.addEventListener("mouseleave", function () {
+      this.tooltipElem.addEventListener("mouseleave", function () {
         This.hide();
       });
+    }
 
-      var elementOffset = This.targetElem.getBoundingClientRect();
-      var tooltipOffset = {
-        left: 0,
-        top: 0,
-      };
-      if (This.anchor == "top") {
-        tooltipOffset.left =
-          elementOffset.left +
-          elementOffset.width / 2 -
-          This.tooltipElem.offsetWidth / 2;
-        tooltipOffset.top =
-          elementOffset.top - This.tooltipElem.offsetHeight - 20;
-      } else if (This.anchor == "bottom") {
-        tooltipOffset.left =
-          elementOffset.left +
-          elementOffset.width / 2 -
-          This.tooltipElem.offsetWidth / 2;
-        tooltipOffset.top = elementOffset.top + elementOffset.height + 20;
-      } else if (This.anchor == "left") {
-        tooltipOffset.left =
-          elementOffset.left - This.tooltipElem.offsetWidth - 20;
-        tooltipOffset.top =
-          elementOffset.top +
-          elementOffset.height / 2 -
-          This.tooltipElem.offsetHeight / 2;
-      } else if (This.anchor == "right") {
-        tooltipOffset.left = elementOffset.left + elementOffset.width + 20;
-        tooltipOffset.top =
-          elementOffset.top +
-          elementOffset.height / 2 -
-          This.tooltipElem.offsetHeight / 2;
+    var elementOffset = this.targetElem.getBoundingClientRect();
+    var tooltipOffset = {
+      left: 0,
+      top: 0,
+    };
+    if (this.anchor == "top") {
+      tooltipOffset.left =
+        elementOffset.left +
+        elementOffset.width / 2 -
+        this.tooltipElem.offsetWidth / 2;
+      tooltipOffset.top =
+        elementOffset.top - this.tooltipElem.offsetHeight - 20;
+    } else if (this.anchor == "bottom") {
+      tooltipOffset.left =
+        elementOffset.left +
+        elementOffset.width / 2 -
+        this.tooltipElem.offsetWidth / 2;
+      tooltipOffset.top = elementOffset.top + elementOffset.height + 20;
+    } else if (this.anchor == "left") {
+      tooltipOffset.left =
+        elementOffset.left - this.tooltipElem.offsetWidth - 20;
+      tooltipOffset.top =
+        elementOffset.top +
+        elementOffset.height / 2 -
+        this.tooltipElem.offsetHeight / 2;
+    } else if (this.anchor == "right") {
+      tooltipOffset.left = elementOffset.left + elementOffset.width + 20;
+      tooltipOffset.top =
+        elementOffset.top +
+        elementOffset.height / 2 -
+        this.tooltipElem.offsetHeight / 2;
+    }
+    this.tooltipElem.className = "hud-tooltip hud-tooltip-" + this.anchor;
+    this.tooltipElem.style.left = tooltipOffset.left + "px";
+    this.tooltipElem.style.top = tooltipOffset.top + "px";
+  }
+
+  bindInputEvents() {
+    var This = this;
+    var isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+    // Skip building toolbar, item toolbar and settings icon tooltips entirely on mobile
+    var isToolbarOrMenu = this.targetElem.classList.contains("hud-toolbar-building") ||
+                          this.targetElem.classList.contains("hud-toolbar-item") ||
+                          this.targetElem.classList.contains("hud-menu-icon");
+
+    if (isMobile) {
+      if (isToolbarOrMenu) {
+        return; // No tooltips for these selectors on mobile viewports
       }
-      This.tooltipElem.className = "hud-tooltip hud-tooltip-" + This.anchor;
-      This.tooltipElem.style.left = tooltipOffset.left + "px";
-      This.tooltipElem.style.top = tooltipOffset.top + "px";
-    });
-    this.targetElem.addEventListener("mouseleave", function (event) {
-      This.hideTimeout = setTimeout(function () {
-        This.hide();
-      }, 150); // 150ms grace period to move mouse into tooltip
-    });
+
+      // Dynamic toggle for sharing popover and other non-toolbar tooltips
+      this.targetElem.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (This.tooltipElem) {
+          This.hide();
+        } else {
+          This.showTooltip();
+        }
+      });
+
+      // Close popover if tapping outside
+      document.addEventListener("touchstart", function (event) {
+        if (This.tooltipElem && 
+            !This.targetElem.contains(event.target) && 
+            !This.tooltipElem.contains(event.target)) {
+          This.hide();
+        }
+      });
+    } else {
+      // Standard desktop hover triggers
+      this.targetElem.addEventListener("mouseenter", function (event) {
+        if (This.hideTimeout) {
+          clearTimeout(This.hideTimeout);
+          This.hideTimeout = null;
+        }
+        This.showTooltip();
+      });
+      this.targetElem.addEventListener("mouseleave", function (event) {
+        This.hideTimeout = setTimeout(function () {
+          This.hide();
+        }, 150);
+      });
+    }
   }
 }
 export default UiTooltip;

@@ -18,10 +18,13 @@ class UiMenuIcons extends _UiComponent {
     var self = this;
     function addIconElem(i) {
       self.iconElems[i] = rawIconElements[i];
-      self.iconElems[i].addEventListener(
-        "click",
-        self.onIconClick(i).bind(self),
-      );
+      var clickHandler = self.onIconClick(i).bind(self);
+      self.iconElems[i].addEventListener("click", clickHandler);
+      self.iconElems[i].addEventListener("touchstart", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        clickHandler(e);
+      }, { passive: false });
       new _UiTooltip(
         self.iconElems[i],
         function (elem) {

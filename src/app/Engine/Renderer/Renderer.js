@@ -268,6 +268,13 @@ class Renderer extends EventEmitter {
     this.entities.setScale(ratio);
     this.ui.setScale(ratio);
     this.renderer.resize(canvasWidth, canvasHeight);
+
+    // Explicitly set canvas CSS style width and height to prevent aspect ratio stretching on Safari/mobile viewports
+    if (this.renderer.view) {
+      this.renderer.view.style.width = window.innerWidth + "px";
+      this.renderer.view.style.height = window.innerHeight + "px";
+    }
+
     this.viewport.width =
       this.renderer.width / this.scale + this.viewportPadding * 2;
     this.viewport.height =

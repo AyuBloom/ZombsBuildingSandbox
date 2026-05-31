@@ -13,6 +13,7 @@ import _UiRespawn from "./UiRespawn";
 import _UiServerSwitcher from "./UiServerSwitcher";
 import _UiToolbar from "./UiToolbar";
 import _UiBaseCostCounter from "./UiBaseCostCounter";
+import _UiMobileControls from "./UiMobileControls";
 import { EventEmitter } from "events";
 var Debugger = require("debug");
 var debug = Debugger("Game:Ui/Ui");
@@ -110,6 +111,13 @@ class Ui extends EventEmitter {
     this.addComponent("Reconnect", new _UiReconnect(this));
     this.addComponent("Respawn", new _UiRespawn(this));
     this.addComponent("Intro", new _UiIntro(this));
+    this.addComponent("MobileControls", new _UiMobileControls(this));
+    
+    // Add mobile touchscreen detection class to body
+    var isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (isTouchDevice) {
+      document.body.classList.add("is-mobile-touch");
+    }
     this.on("itemEquippedOrUsed", this.onItemEquippedOrUsed.bind(this));
     _Game.currentGame.inputManager.on("mouseDown", this.onMouseDown.bind(this));
     _Game.currentGame.inputManager.on("mouseUp", this.onMouseUp.bind(this));
@@ -466,6 +474,13 @@ class Ui extends EventEmitter {
   onMouseDown(event) {
     var placementOverlay = this.components.PlacementOverlay;
     this.isMouseDown = true;
+    if (event.clientX !== undefined && event.clientY !== undefined) {
+      this.mousePosition = {
+        x: event.clientX,
+        y: event.clientY,
+      };
+      placementOverlay.update();
+    }
     if (
       !this.components.Intro.isVisible() &&
       !this.components.Reconnect.isVisible() &&
@@ -485,6 +500,13 @@ class Ui extends EventEmitter {
     var placementOverlay = this.components.PlacementOverlay;
     var menuSettings = this.components.MenuSettings;
     this.isMouseDown = false;
+    if (event.clientX !== undefined && event.clientY !== undefined) {
+      this.mousePosition = {
+        x: event.clientX,
+        y: event.clientY,
+      };
+      placementOverlay.update();
+    }
     if (
       !this.components.Intro.isVisible() &&
       !this.components.Reconnect.isVisible() &&
@@ -701,6 +723,11 @@ class Ui extends EventEmitter {
       this.emit("partiesUpdate", this.parties);
       this.components.Respawn.hide();
       this.components.ServerSwitcher.updateServerList();
+      
+      var isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      if (isTouchDevice && this.components.MobileControls) {
+        this.components.MobileControls.show();
+      }
     }
   }
   onServerShuttingDown(response) {
@@ -987,6 +1014,9 @@ class Ui extends EventEmitter {
     this.components.BuildingOverlay.stopWatching();
     this.components.PlacementOverlay.cancelPlacing();
     this.components.MenuSettings.hide();
+    if (this.components.MobileControls) {
+      this.components.MobileControls.hide();
+    }
   }
   onItemEquippedOrUsed(itemId, itemTier) {
     if (this.itemSchema[itemId].type === "Weapon") {

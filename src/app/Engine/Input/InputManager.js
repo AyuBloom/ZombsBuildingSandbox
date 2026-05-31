@@ -11,11 +11,18 @@ class InputManager extends EventEmitter {
     this.mouseRightDown = false;
     this.keysDown = {};
     this.enabled = false;
+    this.worldTouchId = null;
     document.onkeydown = this.onKeyPress.bind(this);
     document.onkeyup = this.onKeyRelease.bind(this);
     document.onmousedown = this.onMouseDown.bind(this);
     document.onmouseup = this.onMouseUp.bind(this);
     document.onmousemove = this.onMouseMoved.bind(this);
+    
+    document.addEventListener("touchstart", this.onTouchStart.bind(this), { passive: false });
+    document.addEventListener("touchmove", this.onTouchMove.bind(this), { passive: false });
+    document.addEventListener("touchend", this.onTouchEnd.bind(this), { passive: false });
+    document.addEventListener("touchcancel", this.onTouchEnd.bind(this), { passive: false });
+
     _Game.currentGame.network.addEnterWorldHandler((data) => {
       if (data.allowed) {
         this.setEnabled(true);
@@ -87,6 +94,71 @@ class InputManager extends EventEmitter {
       this.emit("mouseMovedWhileDown", event);
     } else {
       this.emit("mouseMoved", event);
+    }
+  }
+  onTouchStart(event) {
+    if (!this.enabled) return;
+    for (var i = 0; i < event.changedTouches.length; i++) {
+      var touch = event.changedTouches[i];
+      var target = touch.target;
+      var isInteractive = target.closest('a, button, input, select, textarea, .spotscout-modal, .joystick-outer, .joystick-inner, .hud-toolbar-building, .btn, .spotscout-dropzone, .hud-mobile-btn, .hud-menu-icon, .hud-menu');
+      if (!isInteractive && this.worldTouchId === null) {
+        this.worldTouchId = touch.identifier;
+        event.preventDefault();
+        var clientX = touch.clientX;
+        var clientY = touch.clientY;
+        this.mousePosition = { x: clientX, y: clientY };
+        this.mouseDown = true;
+        this.emit("mouseDown", {
+          clientX: clientX,
+          clientY: clientY,
+          button: 0,
+          which: 1,
+          target: target,
+          returnValue: true
+        });
+        break;
+      }
+    }
+  }
+  onTouchMove(event) {
+    if (!this.enabled || this.worldTouchId === null) return;
+    for (var i = 0; i < event.touches.length; i++) {
+      var touch = event.touches[i];
+      if (touch.identifier === this.worldTouchId) {
+        event.preventDefault();
+        var clientX = touch.clientX;
+        var clientY = touch.clientY;
+        this.mousePosition = { x: clientX, y: clientY };
+        this.emit("mouseMovedWhileDown", {
+          clientX: clientX,
+          clientY: clientY,
+          button: 0,
+          which: 1,
+          target: touch.target,
+          returnValue: true
+        });
+        break;
+      }
+    }
+  }
+  onTouchEnd(event) {
+    if (this.worldTouchId === null) return;
+    for (var i = 0; i < event.changedTouches.length; i++) {
+      var touch = event.changedTouches[i];
+      if (touch.identifier === this.worldTouchId) {
+        this.worldTouchId = null;
+        this.mouseDown = false;
+        this.emit("mouseUp", {
+          clientX: this.mousePosition.x,
+          clientY: this.mousePosition.y,
+          button: 0,
+          which: 1,
+          target: touch.target,
+          returnValue: true
+        });
+        break;
+      }
     }
   }
 }
