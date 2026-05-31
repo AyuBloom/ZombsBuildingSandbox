@@ -3,6 +3,7 @@ class UiTooltip {
     this.targetElem = targetElem;
     this.callback = callback;
     this.anchor = anchor;
+    this.hideTimeout = null;
     this.bindInputEvents();
   }
   getTargetElem() {
@@ -12,6 +13,10 @@ class UiTooltip {
     this.anchor = anchor;
   }
   hide() {
+    if (this.hideTimeout) {
+      clearTimeout(this.hideTimeout);
+      this.hideTimeout = null;
+    }
     if (this.tooltipElem) {
       this.tooltipElem.remove();
       delete this.tooltipElem;
@@ -20,12 +25,30 @@ class UiTooltip {
   bindInputEvents() {
     var This = this;
     this.targetElem.addEventListener("mouseenter", function (event) {
+      if (This.hideTimeout) {
+        clearTimeout(This.hideTimeout);
+        This.hideTimeout = null;
+      }
+      if (This.tooltipElem) return;
+
       var tooltipHtml =
         '\n            <div id="hud-tooltip" class="hud-tooltip">\n                ' +
         This.callback(This.targetElem) +
         "\n            </div>\n            ";
       document.body.insertAdjacentHTML("beforeend", tooltipHtml);
       This.tooltipElem = document.getElementById("hud-tooltip");
+
+      // Bind hover events on the tooltip itself to allow interaction
+      This.tooltipElem.addEventListener("mouseenter", function () {
+        if (This.hideTimeout) {
+          clearTimeout(This.hideTimeout);
+          This.hideTimeout = null;
+        }
+      });
+      This.tooltipElem.addEventListener("mouseleave", function () {
+        This.hide();
+      });
+
       var elementOffset = This.targetElem.getBoundingClientRect();
       var tooltipOffset = {
         left: 0,
@@ -63,7 +86,9 @@ class UiTooltip {
       This.tooltipElem.style.top = tooltipOffset.top + "px";
     });
     this.targetElem.addEventListener("mouseleave", function (event) {
-      This.hide();
+      This.hideTimeout = setTimeout(function () {
+        This.hide();
+      }, 150); // 150ms grace period to move mouse into tooltip
     });
   }
 }

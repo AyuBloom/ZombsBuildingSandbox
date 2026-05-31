@@ -1010,6 +1010,7 @@ main.privacy strong {
   box-shadow: none;
   border: none;
   color: #ccc;
+  font-size: 14px;
   padding: 0 10px;
   border-radius: 4px;
   cursor: pointer;
@@ -1019,6 +1020,17 @@ main.privacy strong {
 .hud-server-switcher button:hover {
   background: rgba(0, 0, 0, 0.5);
   color: #eee;
+}
+
+.hud-share-popover {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.hud-share-popover button {
+  cursor: pointer;
 }
 
 .hud-server-switcher select {
@@ -3346,12 +3358,13 @@ main.privacy strong {
 }
 
 .spotscout-file {
-    color: #ccc;
-    transition: all 0.15s ease-in-out;
+  color: #ccc;
+  transition: all 0.15s ease-in-out;
 }
 
-.spotscout-file:active, .spotscout-file:hover {
-    color: #eee;
+.spotscout-file:active,
+.spotscout-file:hover {
+  color: #eee;
 }
 
 .spotscout-workspace {
@@ -3372,7 +3385,7 @@ main.privacy strong {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .spotscout-canvas-container canvas {
@@ -3390,16 +3403,27 @@ main.privacy strong {
   left: 0;
   width: 100%;
   height: 4px;
-  background: linear-gradient(to bottom, rgba(46, 204, 113, 0), rgba(46, 204, 113, 0.8), rgba(46, 204, 113, 0));
+  background: linear-gradient(
+    to bottom,
+    rgba(46, 204, 113, 0),
+    rgba(46, 204, 113, 0.8),
+    rgba(46, 204, 113, 0)
+  );
   box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
   animation: spotScoutSweep 2s infinite linear;
   pointer-events: none;
 }
 
 @keyframes spotScoutSweep {
-  0% { top: 0%; }
-  50% { top: 100%; }
-  100% { top: 0%; }
+  0% {
+    top: 0%;
+  }
+  50% {
+    top: 100%;
+  }
+  100% {
+    top: 0%;
+  }
 }
 
 .spotscout-sidebar {
@@ -3418,7 +3442,7 @@ main.privacy strong {
   border-radius: 4px;
   font-size: 13px;
   color: #eee;
-  font-family: 'Open Sans', sans-serif;
+  font-family: "Open Sans", sans-serif;
   margin-bottom: 15px;
   text-align: center;
 }
@@ -3432,7 +3456,7 @@ main.privacy strong {
   font-size: 11px;
   color: rgba(255, 255, 255, 0.5);
   line-height: 1.4;
-  font-family: 'Open Sans', sans-serif;
+  font-family: "Open Sans", sans-serif;
 }
 
 .spotscout-tool-selector {
@@ -3465,7 +3489,7 @@ main.privacy strong {
 }
 
 .hud-intro-spotscout {
-    height: 50px;
-    line-height: 50px;
-    cursor: pointer;
+  height: 50px;
+  line-height: 50px;
+  cursor: pointer;
 }

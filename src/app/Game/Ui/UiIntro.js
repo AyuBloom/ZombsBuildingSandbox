@@ -93,6 +93,7 @@ class UiIntro extends _UiComponent {
 
     this.checkForPartyInvitation();
     this.updateServerOptions();
+    this.parseShareUrlParams();
     this.updatePreview();
     this.fetchLastUpdated();
     this.initDecorations();
@@ -603,6 +604,32 @@ class UiIntro extends _UiComponent {
         if (opt) {
           opt.setAttribute("selected", "true");
         }
+      }
+    }
+  }
+  parseShareUrlParams() {
+    var searchParams = new URLSearchParams(window.location.search);
+    var serverId = searchParams.get("server");
+    var x = searchParams.get("x");
+    var y = searchParams.get("y");
+
+    if (serverId) {
+      this.serverElem.setAttribute("disabled", "true");
+      var option = this.serverElem.querySelector('option[value="' + serverId + '"]');
+      if (option) {
+        this.serverElem.value = serverId;
+        option.setAttribute("selected", "true");
+      }
+    }
+
+    if (x !== null && y !== null) {
+      var parseX = parseInt(x);
+      var parseY = parseInt(y);
+      if (!isNaN(parseX) && !isNaN(parseY)) {
+        window.customSpawnPoint = {
+          x: Math.max(0, Math.min(24000, parseX)),
+          y: Math.max(0, Math.min(24000, parseY))
+        };
       }
     }
   }
