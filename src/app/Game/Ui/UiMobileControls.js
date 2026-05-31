@@ -14,16 +14,28 @@ class UiMobileControls extends _UiComponent {
       '  <div class="hud-mobile-sidebar-container collapsed" id="hud-mobile-sidebar">\n' +
       '    <button type="button" class="hud-mobile-sidebar-toggle" id="hud-mobile-sidebar-toggle">⟨</button>\n' +
       '    <div class="hud-mobile-sidebar-drawer">\n' +
-      '      <button type="button" class="hud-mobile-btn hud-btn-upgrade-all" id="hud-mobile-upgrade-all">\n' +
-      '        <span class="btn-label">Upgrade All</span>\n' +
-      '        <span class="btn-sublabel">OFF</span>\n' +
-      '      </button>\n' +
-      '      <button type="button" class="hud-mobile-btn hud-btn-sprint" id="hud-mobile-sprint">\n' +
-      '        <span class="btn-label">Sprint</span>\n' +
-      '        <span class="btn-sublabel">OFF</span>\n' +
-      '      </button>\n' +
-      '      <button type="button" class="hud-mobile-btn hud-btn-rotate" id="hud-mobile-rotate">Rotate</button>\n' +
-      '      <button type="button" class="hud-mobile-btn hud-btn-cancel" id="hud-mobile-cancel">Unequip</button>\n' +
+      '      <div class="hud-mobile-sidebar-section">\n' +
+      '        <div class="hud-mobile-btn-row">\n' +
+      '          <button type="button" class="hud-mobile-btn hud-btn-zoom-in inline-btn" id="hud-mobile-zoom-in">+</button>\n' +
+      '          <button type="button" class="hud-mobile-btn hud-btn-zoom-out inline-btn" id="hud-mobile-zoom-out">−</button>\n' +
+      '        </div>\n' +
+      '      </div>\n' +
+      '      <div class="hud-mobile-divider"></div>\n' +
+      '      <div class="hud-mobile-sidebar-section">\n' +
+      '        <button type="button" class="hud-mobile-btn hud-btn-upgrade-all" id="hud-mobile-upgrade-all">\n' +
+      '          <span class="btn-label">Upgrade All</span>\n' +
+      '          <span class="btn-sublabel">OFF</span>\n' +
+      '        </button>\n' +
+      '        <button type="button" class="hud-mobile-btn hud-btn-sprint" id="hud-mobile-sprint">\n' +
+      '          <span class="btn-label">Sprint</span>\n' +
+      '          <span class="btn-sublabel">OFF</span>\n' +
+      '        </button>\n' +
+      '      </div>\n' +
+      '      <div class="hud-mobile-divider"></div>\n' +
+      '      <div class="hud-mobile-sidebar-section">\n' +
+      '        <button type="button" class="hud-mobile-btn hud-btn-rotate" id="hud-mobile-rotate">Rotate</button>\n' +
+      '        <button type="button" class="hud-mobile-btn hud-btn-cancel" id="hud-mobile-cancel">Unequip</button>\n' +
+      '      </div>\n' +
       '    </div>\n' +
       '  </div>\n' +
       '</div>'
@@ -40,6 +52,8 @@ class UiMobileControls extends _UiComponent {
     this.upgradeAllSublabel = this.btnUpgradeAll.querySelector(".btn-sublabel");
     this.btnSprint = this.componentElem.querySelector("#hud-mobile-sprint");
     this.sprintSublabel = this.btnSprint.querySelector(".btn-sublabel");
+    this.btnZoomIn = this.componentElem.querySelector("#hud-mobile-zoom-in");
+    this.btnZoomOut = this.componentElem.querySelector("#hud-mobile-zoom-out");
     this.btnRotate = this.componentElem.querySelector("#hud-mobile-rotate");
     this.btnCancel = this.componentElem.querySelector("#hud-mobile-cancel");
 
@@ -330,6 +344,24 @@ class UiMobileControls extends _UiComponent {
         network.sendInput({ shift: 0 });
         this.btnSprint.classList.remove("active");
         this.sprintSublabel.innerText = "OFF";
+      }
+    });
+
+    this.btnZoomIn.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      var renderer = _Game.currentGame.renderer;
+      if (renderer) {
+        renderer.magnification = Math.max(1, renderer.magnification / 1.25);
+      }
+    });
+
+    this.btnZoomOut.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      var renderer = _Game.currentGame.renderer;
+      if (renderer) {
+        renderer.magnification = Math.min(50, renderer.magnification * 1.25);
       }
     });
   }

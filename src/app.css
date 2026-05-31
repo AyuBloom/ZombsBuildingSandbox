@@ -3633,6 +3633,44 @@ main.privacy strong {
   box-sizing: border-box;
 }
 
+.hud-mobile-sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+}
+
+.hud-mobile-btn-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 90px;
+  gap: 8px;
+}
+
+.hud-mobile-btn-row .inline-btn {
+  width: 41px !important;
+  height: 48px !important;
+  font-size: 20px !important;
+  font-weight: bold !important;
+  border-radius: 8px !important;
+  line-height: 48px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-direction: row !important;
+}
+
+.hud-mobile-divider {
+  width: 70px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 1px;
+  margin: 2px 0;
+}
+
 .hud-mobile-sidebar-drawer .hud-mobile-btn {
   width: 90px !important;
   height: 48px !important;
@@ -3741,7 +3779,7 @@ main.privacy strong {
 /* Universal Mobile Overrides */
 @media (max-width: 768px) {
   /* Swipeable Horizontal In-game Toolbar */
-  .hud-toolbar {
+  .is-mobile-touch .hud-toolbar {
     width: 95vw !important;
     max-width: 100vw !important;
     overflow-x: auto !important;
@@ -3752,14 +3790,14 @@ main.privacy strong {
     padding: 6px 10px !important;
   }
   
-  .hud-toolbar .hud-toolbar-buildings {
+  .is-mobile-touch .hud-toolbar .hud-toolbar-buildings {
     display: flex !important;
     flex-direction: row !important;
     gap: 6px !important;
     margin: 0 !important;
   }
   
-  .hud-toolbar .hud-toolbar-buildings .hud-toolbar-building {
+  .is-mobile-touch .hud-toolbar .hud-toolbar-buildings .hud-toolbar-building {
     flex: 0 0 48px !important;
     width: 48px !important;
     height: 48px !important;
@@ -3767,41 +3805,41 @@ main.privacy strong {
     margin: 0 !important;
   }
   
-  .hud-toolbar .hud-toolbar-buildings .hud-toolbar-building::after {
+  .is-mobile-touch .hud-toolbar .hud-toolbar-buildings .hud-toolbar-building::after {
     width: 36px !important;
     height: 36px !important;
     margin: 6px auto !important;
   }
   
-  .hud-toolbar .hud-toolbar-buildings .hud-toolbar-building::before {
+  .is-mobile-touch .hud-toolbar .hud-toolbar-buildings .hud-toolbar-building::before {
     display: none !important;
   }
   
   /* Spot Scout Modal Responsiveness */
-  .spotscout-modal-content {
+  .is-mobile-touch .spotscout-modal-content {
     width: 95vw !important;
     max-width: 95vw !important;
     max-height: 90vh !important;
     overflow-y: auto !important;
   }
   
-  .spotscout-workspace {
+  .is-mobile-touch .spotscout-workspace {
     flex-direction: column !important;
     align-items: center !important;
     gap: 15px !important;
   }
   
-  .spotscout-canvas-container {
+  .is-mobile-touch .spotscout-canvas-container {
     width: 100% !important;
     max-width: 280px !important;
   }
   
-  .spotscout-canvas-container canvas {
+  .is-mobile-touch .spotscout-canvas-container canvas {
     width: 100% !important;
     height: auto !important;
   }
   
-  .spotscout-sidebar {
+  .is-mobile-touch .spotscout-sidebar {
     width: 100% !important;
     max-width: 280px !important;
   }
@@ -3809,50 +3847,50 @@ main.privacy strong {
 
 /* Portrait Mobile Viewport Heights (Stacked Layout) */
 @media (max-width: 768px) and (min-height: 521px) {
-  .hud-intro .hud-intro-wrapper {
+  .is-mobile-touch .hud-intro .hud-intro-wrapper {
     padding: 20px 10px !important;
     height: 100vh !important;
     justify-content: flex-start !important;
     overflow-y: auto !important;
   }
   
-  .hud-intro h1 {
+  .is-mobile-touch .hud-intro h1 {
     font-size: 28px !important;
     margin-top: 10px !important;
   }
   
-  .hud-intro h2 {
+  .is-mobile-touch .hud-intro h2 {
     font-size: 12px !important;
   }
   
-  .hud-intro .hud-intro-main {
+  .is-mobile-touch .hud-intro .hud-intro-main {
     flex-direction: column !important;
     margin: 15px auto !important;
     gap: 12px !important;
     align-items: center !important;
   }
   
-  .hud-intro .hud-intro-form,
-  .hud-intro .hud-intro-main .hud-intro-preview {
+  .is-mobile-touch .hud-intro .hud-intro-form,
+  .is-mobile-touch .hud-intro .hud-intro-main .hud-intro-preview {
     width: 280px !important;
     padding: 12px !important;
   }
   
-  .hud-intro .hud-intro-form .hud-intro-server,
-  .hud-intro .hud-intro-form .hud-intro-play,
-  .hud-intro-spotscout {
+  .is-mobile-touch .hud-intro .hud-intro-form .hud-intro-server,
+  .is-mobile-touch .hud-intro .hud-intro-form .hud-intro-play,
+  .is-mobile-touch .hud-intro-spotscout {
     height: 42px !important;
     line-height: 42px !important;
     font-size: 13px !important;
   }
   
-  .hud-intro .hud-intro-main .hud-intro-preview .canvas-container,
-  .hud-intro .hud-intro-main .hud-intro-preview canvas {
+  .is-mobile-touch .hud-intro .hud-intro-main .hud-intro-preview .canvas-container,
+  .is-mobile-touch .hud-intro .hud-intro-main .hud-intro-preview canvas {
     width: 180px !important;
     height: 180px !important;
   }
   
-  .hud-intro .hud-intro-footer {
+  .is-mobile-touch .hud-intro .hud-intro-footer {
     position: static !important;
     margin: 20px auto 10px !important;
     font-size: 11px !important;
@@ -3860,7 +3898,7 @@ main.privacy strong {
     text-align: center !important;
   }
   
-  .hud-intro .hud-intro-corner-bottom-left {
+  .is-mobile-touch .hud-intro .hud-intro-corner-bottom-left {
     position: static !important;
     margin: 5px auto !important;
     display: flex !important;
@@ -3870,7 +3908,7 @@ main.privacy strong {
 
 /* Landscape / Short Mobile Viewports (Side-by-Side Scaled Layout) */
 @media (max-height: 520px) {
-  .hud-intro .hud-intro-wrapper {
+  .is-mobile-touch .hud-intro .hud-intro-wrapper {
     margin: 0 !important;
     padding: 5px !important;
     height: 100vh !important;
@@ -3878,17 +3916,17 @@ main.privacy strong {
     overflow-y: auto !important;
   }
   
-  .hud-intro h1 {
+  .is-mobile-touch .hud-intro h1 {
     font-size: 22px !important;
     margin-top: 5px !important;
   }
   
-  .hud-intro h2 {
+  .is-mobile-touch .hud-intro h2 {
     font-size: 10px !important;
     margin-bottom: 5px !important;
   }
   
-  .hud-intro .hud-intro-main {
+  .is-mobile-touch .hud-intro .hud-intro-main {
     margin: 5px auto !important;
     gap: 15px !important;
     flex-direction: row !important;
@@ -3896,49 +3934,49 @@ main.privacy strong {
     justify-content: center !important;
   }
   
-  .hud-intro .hud-intro-form,
-  .hud-intro .hud-intro-main .hud-intro-preview {
+  .is-mobile-touch .hud-intro .hud-intro-form,
+  .is-mobile-touch .hud-intro .hud-intro-main .hud-intro-preview {
     width: 250px !important;
     padding: 10px !important;
     margin: 0 !important;
   }
   
-  .hud-intro .hud-intro-form .hud-intro-server,
-  .hud-intro .hud-intro-form .hud-intro-play,
-  .hud-intro-spotscout {
+  .is-mobile-touch .hud-intro .hud-intro-form .hud-intro-server,
+  .is-mobile-touch .hud-intro .hud-intro-form .hud-intro-play,
+  .is-mobile-touch .hud-intro-spotscout {
     height: 36px !important;
     line-height: 36px !important;
     font-size: 12px !important;
     margin-top: 5px !important;
   }
   
-  .hud-intro .hud-intro-main .hud-intro-preview h3 {
+  .is-mobile-touch .hud-intro .hud-intro-main .hud-intro-preview h3 {
     font-size: 13px !important;
     margin-bottom: 2px !important;
   }
   
-  .hud-intro .hud-intro-main .hud-intro-preview .hud-intro-preview-stats {
+  .is-mobile-touch .hud-intro .hud-intro-main .hud-intro-preview .hud-intro-preview-stats {
     font-size: 10px !important;
     margin-bottom: 4px !important;
   }
   
-  .hud-intro .hud-intro-main .hud-intro-preview .canvas-container,
-  .hud-intro .hud-intro-main .hud-intro-preview canvas {
+  .is-mobile-touch .hud-intro .hud-intro-main .hud-intro-preview .canvas-container,
+  .is-mobile-touch .hud-intro .hud-intro-main .hud-intro-preview canvas {
     width: 120px !important;
     height: 120px !important;
     margin: 0 auto !important;
   }
   
-  .hud-intro .hud-intro-main .hud-intro-preview .hud-intro-preview-coords {
+  .is-mobile-touch .hud-intro .hud-intro-main .hud-intro-preview .hud-intro-preview-coords {
     margin-top: 4px !important;
     font-size: 9px !important;
   }
   
-  .hud-intro .hud-intro-preview-help {
+  .is-mobile-touch .hud-intro .hud-intro-preview-help {
     display: none !important; /* Hide to save screen space */
   }
   
-  .hud-intro .hud-intro-footer {
+  .is-mobile-touch .hud-intro .hud-intro-footer {
     position: static !important;
     margin: 10px auto !important;
     text-align: center !important;
@@ -3947,7 +3985,7 @@ main.privacy strong {
     display: block !important;
   }
   
-  .hud-intro .hud-intro-corner-bottom-left {
+  .is-mobile-touch .hud-intro .hud-intro-corner-bottom-left {
     position: static !important;
     margin: 5px auto !important;
     display: flex !important;
@@ -3986,30 +4024,52 @@ main.privacy strong {
 }
 
 /* Mobile Settings Overrides with Safe Area & Small Viewport (svh) Support */
-@media (max-width: 768px) {
-  .hud-menu-settings {
-    width: 95% !important;
-    max-width: 520px !important;
-    height: auto !important;
-    max-height: 90vh !important;
-    max-height: 90svh !important;
-    left: 50% !important;
-    top: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    margin: 0 !important;
-    padding: calc(12px + env(safe-area-inset-top, 0px)) 15px calc(12px + env(safe-area-inset-bottom, 0px)) !important;
-    box-sizing: border-box !important;
-    display: flex !important;
-    flex-direction: column !important;
-    overflow: hidden !important;
-  }
-  
-  .hud-menu-settings .hud-settings-grid {
-    height: auto !important;
-    max-height: calc(90vh - 70px) !important;
-    max-height: calc(90svh - 70px) !important;
-    margin-top: 10px !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch; /* smooth scrolling inside Safari/iOS */
-  }
+.is-mobile-touch .hud-menu-settings {
+  width: 95% !important;
+  max-width: 520px !important;
+  height: auto !important;
+  max-height: 90vh !important;
+  max-height: 90svh !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) 15px calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+  box-sizing: border-box !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+.is-mobile-touch .hud-menu-settings[style*="display: block"] {
+  display: flex !important;
+}
+
+.is-mobile-touch .hud-menu-settings[style*="display: none"] {
+  display: none !important;
+}
+
+.is-mobile-touch .hud-menu-settings .hud-settings-grid {
+  height: auto !important;
+  max-height: calc(90vh - 70px) !important;
+  max-height: calc(90svh - 70px) !important;
+  margin-top: 10px !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch; /* smooth scrolling inside Safari/iOS */
+}
+
+/* Zoom Button Stylings */
+.hud-btn-zoom-in {
+  background: rgba(14, 114, 168, 0.5) !important;
+  border-color: rgba(41, 153, 214, 0.4) !important;
+}
+.hud-btn-zoom-in:active {
+  background: rgba(14, 114, 168, 0.75) !important;
+}
+
+.hud-btn-zoom-out {
+  background: rgba(43, 76, 89, 0.5) !important;
+  border-color: rgba(72, 115, 133, 0.4) !important;
+}
+.hud-btn-zoom-out:active {
+  background: rgba(43, 76, 89, 0.75) !important;
 }
