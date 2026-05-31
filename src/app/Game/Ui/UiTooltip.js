@@ -23,6 +23,12 @@ class UiTooltip {
     }
   }
   showTooltip() {
+    // Clean up any other active tooltips in the DOM to prevent stacking and ID collisions
+    var existingTooltip = document.getElementById("hud-tooltip");
+    if (existingTooltip) {
+      existingTooltip.remove();
+    }
+
     if (this.tooltipElem) return;
 
     var This = this;
@@ -31,7 +37,7 @@ class UiTooltip {
       this.callback(this.targetElem) +
       "\n            </div>\n            ";
     document.body.insertAdjacentHTML("beforeend", tooltipHtml);
-    this.tooltipElem = document.getElementById("hud-tooltip");
+    this.tooltipElem = document.body.lastElementChild;
 
     var isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
     if (!isMobile) {

@@ -36,7 +36,6 @@ class World {
       this.onEntityUpdate.bind(this),
     );
     this.replicator.init();
-    this.network.addCloseHandler(this.onClose.bind(this));
     this.network.addEnterWorldHandler(this.onEnterWorld.bind(this));
     this.renderer.addTickCallback(this.onRendererTick.bind(this));
     _Game.currentGame.network.addEnterWorldHandler((data) => {
@@ -139,11 +138,6 @@ class World {
     }
     return this.modelEntityPool[modelName].length;
   }
-  onClose() {
-    for (let uid of this.entities.keys()) {
-      this.removeEntity(uid);
-    }
-  }
   onEnterWorld(data) {
     if (data.allowed) {
       this.width = data.x2;
@@ -207,6 +201,8 @@ class World {
   updateEntity(uid, data) {
     this.entities.get(uid).setTargetTick(data);
     this.entityGrid.updateEntity(this.entities.get(uid));
+    this.updateObstacleIndicatorPosition(uid, data);
+    this.updateResourceCollisionIndicatorPosition(uid, data);
   }
   removeEntity(uid) {
     var entity = this.entities.get(uid);
@@ -394,6 +390,22 @@ class World {
       for (var uid in this.resourceCollisionIndicators) {
         this.removeResourceCollisionIndicator(uid);
       }
+    }
+  }
+  updateObstacleIndicatorPosition(uid, data) {
+    if (this.obstacleIndicators[uid]) {
+      var bounds = this.getObstacleIndicatorBounds(data);
+      if (bounds) {
+        this.obstacleIndicators[uid].setPosition(bounds.x, bounds.y);
+      }
+    }
+  }
+  updateResourceCollisionIndicatorPosition(uid, data) {
+    if (this.resourceCollisionIndicators[uid]) {
+      this.resourceCollisionIndicators[uid].setPosition(
+        data.position.x,
+        data.position.y,
+      );
     }
   }
   makeGroupingGrid() {

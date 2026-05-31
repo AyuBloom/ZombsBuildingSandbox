@@ -65,6 +65,9 @@ class LocalNetworkAdapter extends _NetworkAdapter {
   }
 
   connect(options) {
+    if (this.connected || this.connecting) {
+      this.disconnect();
+    }
     this.connectionOptions = options;
     this.connecting = true;
 

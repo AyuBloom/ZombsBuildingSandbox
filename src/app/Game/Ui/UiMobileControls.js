@@ -61,6 +61,7 @@ class UiMobileControls extends _UiComponent {
     this.upgradeAllToggled = false;
     this.sprintToggled = false;
     this.sidebarCollapsed = true;
+    this.enterGameTime = null;
 
     this.bindJoystickEvents();
     this.bindActionEvents();
@@ -71,11 +72,20 @@ class UiMobileControls extends _UiComponent {
     this.hide();
   }
 
+  show() {
+    super.show();
+    this.enterGameTime = Date.now();
+    this.updateJoystickVisibility();
+  }
+
   updateJoystickVisibility() {
     var placementOverlay = this.ui.getComponent("PlacementOverlay");
     var isPlacing = placementOverlay && placementOverlay.isActive();
+    var enteredRecently = this.enterGameTime && (Date.now() - this.enterGameTime < 4000);
     
     if (this.joystickTouchId !== null) {
+      this.joystickContainer.className = "hud-mobile-joystick-container active";
+    } else if (enteredRecently) {
       this.joystickContainer.className = "hud-mobile-joystick-container active";
     } else if (isPlacing) {
       this.joystickContainer.className = "hud-mobile-joystick-container semi-visible";
