@@ -1,0 +1,24 @@
+{
+  "name": "Zombs.io - Building Sandbox",
+  "short_name": "Zombs Sandbox",
+  "description": "Find ideal spots and build base designs for zombs.io in this interactive sandbox.",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#202020",
+  "theme_color": "#202020",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

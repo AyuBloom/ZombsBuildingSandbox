@@ -95,6 +95,10 @@ module.exports = {
       patterns: [
         { from: "src/image", to: "asset/image" },
         { from: "src/favicon.ico", to: "favicon.ico" },
+        { from: "src/manifest.json", to: "manifest.json" },
+        { from: "src/sw.js", to: "sw.js" },
+        { from: "src/image/icon-192.png", to: "icon-192.png" },
+        { from: "src/image/icon-512.png", to: "icon-512.png" },
       ],
     }),
   ],
