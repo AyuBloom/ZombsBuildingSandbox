@@ -50,7 +50,7 @@ export default class LocalMovementController {
     }
   }
 
-  start(playerdata, playerUid) {
+  start(playerdata, playerUid, worldSize = 24000) {
     this.stop();
     let lastTime = performance.now();
     this.moveInterval = setInterval(() => {
@@ -80,8 +80,8 @@ export default class LocalMovementController {
         if (this.yaw === 225 || this.yaw === 270 || this.yaw === 315) playerdata.position.x -= speedMultiplier;
       }
 
-      playerdata.position.x = Math.max(0, Math.min(24000, playerdata.position.x));
-      playerdata.position.y = Math.max(0, Math.min(24000, playerdata.position.y));
+      playerdata.position.x = Math.max(0, Math.min(worldSize, playerdata.position.x));
+      playerdata.position.y = Math.max(0, Math.min(worldSize, playerdata.position.y));
 
       if (playerdata.position.x !== oldX || playerdata.position.y !== oldY) {
         this.entityManager.markEntityDirty(playerUid);

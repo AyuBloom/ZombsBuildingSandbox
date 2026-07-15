@@ -180,6 +180,7 @@ class UiIntro extends _UiComponent {
 
     const spots = window.decodeSpotJSON(
       window.serverspots[serverId].spotEncoded,
+      serverId,
     );
     if (this.lastServerId !== serverId) {
       this.lastServerId = serverId;
@@ -198,6 +199,7 @@ class UiIntro extends _UiComponent {
     ) {
       const spots = window.decodeSpotJSON(
         window.serverspots[serverId].spotEncoded,
+        serverId,
       );
       this.preRenderMap(spots);
     }

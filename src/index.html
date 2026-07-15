@@ -2,13 +2,19 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
     <title>ZOMBS.io - Building Sandbox</title>
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#202020" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
     <link rel="apple-touch-icon" href="icon-192.png" />
     <link
       rel="stylesheet"
@@ -24,9 +30,14 @@
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js")
-            .then(reg => console.log("Service Worker registered. Scope:", reg.scope))
-            .catch(err => console.error("Service Worker registration failed:", err));
+          navigator.serviceWorker
+            .register("sw.js")
+            .then((reg) =>
+              console.log("Service Worker registered. Scope:", reg.scope),
+            )
+            .catch((err) =>
+              console.error("Service Worker registration failed:", err),
+            );
         });
       }
     </script>
@@ -55,6 +66,7 @@
                 <option value="v1006">US East #6</option>
                 <option value="v1007">US East #7</option>
                 <option value="v1008">US East #8</option>
+                <option value="v1009">US East #9 (+)</option>
               </optgroup>
               <optgroup label="US West">
                 <option value="v2001">US West #1</option>
@@ -81,7 +93,12 @@
             <button type="submit" class="btn btn-green hud-intro-play">
               Start Sandbox
             </button>
-            <button type="button" class="btn btn-blue hud-intro-spotscout" id="hud-intro-spotscout" style="margin-top: 10px; width: 100%;">
+            <button
+              type="button"
+              class="btn btn-blue hud-intro-spotscout"
+              id="hud-intro-spotscout"
+              style="margin-top: 10px; width: 100%"
+            >
               Spot Scout
             </button>
             <span class="hud-intro-error"></span>
@@ -143,42 +160,112 @@
       </div>
 
       <!-- Spot Scout Modal -->
-      <div id="spotscout-modal" class="spotscout-modal" style="display: none;">
+      <div id="spotscout-modal" class="spotscout-modal" style="display: none">
         <div class="spotscout-modal-content">
           <div class="spotscout-modal-header">
             <h3>Spot Scout</h3>
-            <span class="spotscout-modal-close" id="spotscout-close">&times;</span>
+            <span class="spotscout-modal-close" id="spotscout-close"
+              >&times;</span
+            >
           </div>
           <div class="spotscout-modal-body">
             <!-- Dropzone View -->
             <div id="spotscout-dropzone" class="spotscout-dropzone">
               <p>Drag & drop / paste spot image here</p>
-              <span style="font-size: 12px; color: rgba(255,255,255,0.4); margin: 5px 0;">or</span>
-              <a id="spotscout-file" class="spotscout-file" href="javascript:void(0);">Choose Image</a>
-              <input type="file" id="spotscout-file-input" style="display: none;" accept="image/*" />
+              <span
+                style="
+                  font-size: 12px;
+                  color: rgba(255, 255, 255, 0.4);
+                  margin: 5px 0;
+                "
+                >or</span
+              >
+              <a
+                id="spotscout-file"
+                class="spotscout-file"
+                href="javascript:void(0);"
+                >Choose Image</a
+              >
+              <input
+                type="file"
+                id="spotscout-file-input"
+                style="display: none"
+                accept="image/*"
+              />
             </div>
 
             <!-- Scanner / Calibration Workspace -->
-            <div id="spotscout-workspace" class="spotscout-workspace" style="display: none;">
+            <div
+              id="spotscout-workspace"
+              class="spotscout-workspace"
+              style="display: none"
+            >
               <div class="spotscout-canvas-container">
                 <canvas id="spotscout-canvas"></canvas>
-                <div id="spotscout-scanner" class="spotscout-scanner" style="display: none;"></div>
+                <div
+                  id="spotscout-scanner"
+                  class="spotscout-scanner"
+                  style="display: none"
+                ></div>
               </div>
               <div class="spotscout-sidebar">
                 <div class="spotscout-status" id="spotscout-status">
                   Analyzing image...
                 </div>
-                <div class="spotscout-manual-controls" id="spotscout-manual-controls" style="display: none;">
-                  <p class="spotscout-instructions">Auto-detection uncertain. Tap 3 or more resource nodes on the image, then click 'Find Spot' to locate:</p>
+                <div
+                  class="spotscout-manual-controls"
+                  id="spotscout-manual-controls"
+                  style="display: none"
+                >
+                  <p class="spotscout-instructions">
+                    Auto-detection uncertain. Tap 3 or more resource nodes on
+                    the image, then click 'Find Spot' to locate:
+                  </p>
                   <div class="spotscout-tool-selector">
-                    <button type="button" class="btn spotscout-tool-btn active" data-type="Tree">Tree</button>
-                    <button type="button" class="btn spotscout-tool-btn" data-type="Stone">Stone</button>
-                    <button type="button" class="btn spotscout-tool-btn" data-type="NeutralCamp">Neutral Camp</button>
+                    <button
+                      type="button"
+                      class="btn spotscout-tool-btn active"
+                      data-type="Tree"
+                    >
+                      Tree
+                    </button>
+                    <button
+                      type="button"
+                      class="btn spotscout-tool-btn"
+                      data-type="Stone"
+                    >
+                      Stone
+                    </button>
+                    <button
+                      type="button"
+                      class="btn spotscout-tool-btn"
+                      data-type="NeutralCamp"
+                    >
+                      Neutral Camp
+                    </button>
                   </div>
-                  <button type="button" class="btn btn-green" id="spotscout-solve-btn" style="margin-top: 10px; width: 100%;">Find Spot</button>
-                  <button type="button" class="btn btn-red" id="spotscout-clear-btn" style="margin-top: 10px; width: 100%;">Clear Markers</button>
+                  <button
+                    type="button"
+                    class="btn btn-green"
+                    id="spotscout-solve-btn"
+                    style="margin-top: 10px; width: 100%"
+                  >
+                    Find Spot
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-red"
+                    id="spotscout-clear-btn"
+                    style="margin-top: 10px; width: 100%"
+                  >
+                    Clear Markers
+                  </button>
                 </div>
-                <div class="spotscout-result" id="spotscout-result" style="display: none;"></div>
+                <div
+                  class="spotscout-result"
+                  id="spotscout-result"
+                  style="display: none"
+                ></div>
               </div>
             </div>
           </div>
@@ -198,7 +285,7 @@
             ipAddress: "45.76.4.28",
             port: 443,
             fallbackPort: 443,
-            selected: false,
+            selected: true,
           },
           v1002: {
             id: "v1002",
@@ -266,6 +353,16 @@
             name: "US East #8",
             hostname: "zombs-951c3ac1-0.eggs.gg",
             ipAddress: "149.28.58.193",
+            port: 443,
+            fallbackPort: 443,
+            selected: false,
+          },
+          v1009: {
+            id: "v1009",
+            region: "US East",
+            name: "US East #9 (+)",
+            hostname: "zombs-2d4ddb0f-0.eggs.gg",
+            ipAddress: "45.77.219.15",
             port: 443,
             fallbackPort: 443,
             selected: false,
@@ -388,7 +485,7 @@
             ipAddress: "149.28.182.161",
             port: 443,
             fallbackPort: 443,
-            selected: true,
+            selected: false,
           },
           v4002: {
             id: "v4002",

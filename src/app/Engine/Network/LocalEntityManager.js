@@ -9,8 +9,8 @@ export default class LocalEntityManager {
     this.newEntitiesByPos = {};
   }
 
-  reset() {
-    this.uid = 825;
+  reset(maxResourceUid = 825) {
+    this.uid = maxResourceUid;
     this.entities.clear();
     this.unchangedEntities.clear();
     this.dirtyEntities.clear();

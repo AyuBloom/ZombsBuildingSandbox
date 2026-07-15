@@ -71,21 +71,25 @@ class LocalNetworkAdapter extends _NetworkAdapter {
     this.connectionOptions = options;
     this.connecting = true;
 
-    this.entityManager.reset();
+    const currentServerId = _Game.currentGame.options.serverId;
+    const worldSize = window.getServerWorldSize(currentServerId);
+    const maxResourceUid = window.getServerMaxUid(currentServerId);
+
+    this.entityManager.reset(maxResourceUid);
     this.movementController.reset();
-    this.buildingManager.reset();
+    this.buildingManager.reset(worldSize);
     this.collisionChecker.reset();
 
     this.playerUid = this.entityManager.nextUid();
-    this.playerdata = getInitialPlayerData(this.playerUid);
-    this.connectpacketdata = getInitialConnectPacketData(this.playerUid);
+    this.playerdata = getInitialPlayerData(this.playerUid, worldSize);
+    this.connectpacketdata = getInitialConnectPacketData(this.playerUid, worldSize);
 
     this.entityManager.entities.set(this.playerUid, this.playerdata);
     this.entityManager.unchangedEntities.set(this.playerUid, true);
 
     this.ticks = 1;
 
-    this.movementController.start(this.playerdata, this.playerUid);
+    this.movementController.start(this.playerdata, this.playerUid, worldSize);
 
     // Simulate connection open
     this.connecting = false;
@@ -112,6 +116,7 @@ class LocalNetworkAdapter extends _NetworkAdapter {
 
       // Decode serverspots
       const currentServerId = _Game.currentGame.options.serverId;
+      const maxResourceUid = window.getServerMaxUid(currentServerId);
       if (
         window.serverspots &&
         window.serverspots[currentServerId] &&
@@ -119,8 +124,9 @@ class LocalNetworkAdapter extends _NetworkAdapter {
       ) {
         const spots = window.decodeSpotJSON(
           window.serverspots[currentServerId].spotEncoded,
+          currentServerId,
         );
-        for (let i = 0; i < 825; i++) {
+        for (let i = 0; i < maxResourceUid; i++) {
           this.entityManager.entities.delete(i + 1);
           delete this.collisionChecker.rss[i + 1];
         }

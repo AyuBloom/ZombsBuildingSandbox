@@ -9,17 +9,24 @@ export default class LocalBuildingManager {
     this.goldstash = null;
     this.towersLength = getInitialTowersLength();
     this.towerLimits = TOWER_LIMITS;
+    this.worldSize = 24000;
   }
 
-  reset() {
+  reset(worldSize = 24000) {
     this.buildings = {};
     this.goldstash = null;
     this.towersLength = getInitialTowersLength();
+    this.worldSize = worldSize;
   }
 
   handleRpc(data, playerdata, playerUid) {
     if (data.name == "TeleportPlayer") {
-      if (data.x >= 0 && data.x <= 24000 && data.y >= 0 && data.y <= 24000) {
+      if (
+        data.x >= 0 &&
+        data.x <= this.worldSize &&
+        data.y >= 0 &&
+        data.y <= this.worldSize
+      ) {
         playerdata.position.x = data.x;
         playerdata.position.y = data.y;
         this.entityManager.markEntityDirty(playerUid);
@@ -35,8 +42,8 @@ export default class LocalBuildingManager {
         let newX = this.goldstash.x + dx;
         let newY = this.goldstash.y + dy;
 
-        newX = Math.max(192, Math.min(23808, newX));
-        newY = Math.max(192, Math.min(23808, newY));
+        newX = Math.max(192, Math.min(this.worldSize - 192, newX));
+        newY = Math.max(192, Math.min(this.worldSize - 192, newY));
 
         newX = Math.round(newX / 48) * 48;
         newY = Math.round(newY / 48) * 48;
@@ -124,9 +131,9 @@ export default class LocalBuildingManager {
       if (data.type == "Tree" || data.type == "Stone") {
         if (
           data.x >= 0 &&
-          data.x <= 24000 &&
+          data.x <= this.worldSize &&
           data.y >= 0 &&
-          data.y <= 24000 &&
+          data.y <= this.worldSize &&
           !this.entityManager.newEntitiesByPos[data.x + ", " + data.y + ", " + data.type]
         ) {
           let _uid = this.entityManager.nextUid();
@@ -181,9 +188,9 @@ export default class LocalBuildingManager {
         !this.goldstash &&
         data.type == "GoldStash" &&
         data.x >= 192 &&
-        data.x <= 23808 &&
+        data.x <= this.worldSize - 192 &&
         data.y >= 192 &&
-        data.y <= 23808 &&
+        data.y <= this.worldSize - 192 &&
         this.collisionChecker.fixOccurredBuildingsForRssByType(data.x, data.y, data.type)
       ) {
         let _uid = this.entityManager.nextUid();
@@ -229,9 +236,9 @@ export default class LocalBuildingManager {
           Math.abs(data.x - this.goldstash.x) < 865) ||
           data.type == "Harvester") &&
         data.x >= 192 &&
-        data.x <= 23808 &&
+        data.x <= this.worldSize - 192 &&
         data.y >= 192 &&
-        data.y <= 23808 &&
+        data.y <= this.worldSize - 192 &&
         this.collisionChecker.fixOccurredBuildingsByType(data.x, data.y, data.type) &&
         this.collisionChecker.fixOccurredBuildingsForRssByType(data.x, data.y, data.type)
       ) {

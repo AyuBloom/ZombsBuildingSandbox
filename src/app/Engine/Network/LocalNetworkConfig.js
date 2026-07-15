@@ -28,7 +28,7 @@ export function getInitialTowersLength() {
   };
 }
 
-export function getInitialConnectPacketData(playerUid) {
+export function getInitialConnectPacketData(playerUid, worldSize = 24000) {
   return {
     allowed: 1,
     chatChannel: 0,
@@ -41,13 +41,13 @@ export function getInitialConnectPacketData(playerUid) {
     tickRate: 20,
     uid: playerUid,
     x1: 0,
-    x2: 24000,
+    x2: worldSize,
     y1: 0,
-    y2: 24000,
+    y2: worldSize,
   };
 }
 
-export function getInitialPlayerData(playerUid) {
+export function getInitialPlayerData(playerUid, worldSize = 24000) {
   return {
     aimingYaw: 0,
     availableSkillPoints: 1,
@@ -83,8 +83,8 @@ export function getInitialPlayerData(playerUid) {
     partyId: 1,
     petUid: 0,
     position: {
-      x: window.customSpawnPoint ? window.customSpawnPoint.x : 24000 / 2,
-      y: window.customSpawnPoint ? window.customSpawnPoint.y : 24000 / 2,
+      x: window.customSpawnPoint ? window.customSpawnPoint.x : worldSize / 2,
+      y: window.customSpawnPoint ? window.customSpawnPoint.y : worldSize / 2,
     },
     reconnectSecret: "",
     score: 0,

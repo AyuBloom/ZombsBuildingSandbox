@@ -260,7 +260,7 @@ class SpotScout {
     for (const [serverId, info] of Object.entries(serverspots)) {
       if (info.spotEncoded) {
         if (!info.spotDecodedCache) {
-          const decoded = Object.values(decodeFn(info.spotEncoded));
+          const decoded = Object.values(decodeFn(info.spotEncoded, serverId));
           const byType = { Tree: [], Stone: [], NeutralCamp: [] };
           for (const g of decoded) {
             if (byType[g.model]) byType[g.model].push(g);
