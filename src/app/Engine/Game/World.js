@@ -24,6 +24,8 @@ class World {
     this.obstacleIndicators = {};
     this.resourceCollisionIndicators = {};
     this.groupingGridLoaded = false;
+    this.borderTexture = null;
+    this.grassTexture = null;
     this.blueGrid = null;
     this.purpleGrid = null;
     this.obstacleIndicatorColors = {
@@ -39,36 +41,51 @@ class World {
     this.network.addEnterWorldHandler(this.onEnterWorld.bind(this));
     this.renderer.addTickCallback(this.onRendererTick.bind(this));
     _Game.currentGame.network.addEnterWorldHandler((data) => {
-      if (data.allowed && !this.isInitialized) {
-        this.groundEntity = new _GroundEntity();
-        var borderTexture = new _SpriteEntity(
-          "/asset/image/map/map-grass.png",
-          true,
-        );
-        var grassTexture = new _SpriteEntity(
-          "/asset/image/map/map-grass.png",
-          true,
-        );
-        this.groundEntity.addAttachment(borderTexture);
-        this.groundEntity.addAttachment(grassTexture);
-        borderTexture.setDimensions(
-          -960,
-          -960,
-          this.width + 1920,
-          this.height + 1920,
-        );
-        borderTexture.setAnchor(0, 0);
-        borderTexture.setAlpha(0.75);
-        grassTexture.setDimensions(0, 0, this.width, this.height);
-        grassTexture.setAnchor(0, 0);
-        this.groundEntity.setVisible(
-          !!_Game.currentGame.ui.getOption("showGround"),
-        );
-        this.renderer.add(this.groundEntity);
-        this.makeGroupingGrid();
-        this.isInitialized = true;
+      if (data.allowed) {
+        if (!this.isInitialized) {
+          this.groundEntity = new _GroundEntity();
+          this.borderTexture = new _SpriteEntity(
+            "/asset/image/map/map-grass.png",
+            true,
+          );
+          this.grassTexture = new _SpriteEntity(
+            "/asset/image/map/map-grass.png",
+            true,
+          );
+          this.groundEntity.addAttachment(this.borderTexture);
+          this.groundEntity.addAttachment(this.grassTexture);
+          this.borderTexture.setAnchor(0, 0);
+          this.borderTexture.setAlpha(0.75);
+          this.grassTexture.setAnchor(0, 0);
+          this.groundEntity.setVisible(
+            !!_Game.currentGame.ui.getOption("showGround"),
+          );
+          this.renderer.add(this.groundEntity);
+          this.makeGroupingGrid();
+          this.isInitialized = true;
+        }
+        this.resizeWorldVisuals();
       }
     });
+  }
+  resizeWorldVisuals() {
+    if (this.borderTexture) {
+      this.borderTexture.setDimensions(
+        -960,
+        -960,
+        this.width + 1920,
+        this.height + 1920,
+      );
+    }
+    if (this.grassTexture) {
+      this.grassTexture.setDimensions(0, 0, this.width, this.height);
+    }
+    if (this.blueGrid) {
+      this.blueGrid.setDimensions(0, 0, this.width, this.height);
+    }
+    if (this.purpleGrid) {
+      this.purpleGrid.setDimensions(48, 48, this.width - 48, this.height - 48);
+    }
   }
   preloadNetworkEntities() {
     if (_Game.currentGame.getNetworkEntityPooling()) {
@@ -429,11 +446,14 @@ class World {
     });
 
     this.blueGrid = new _SpriteEntity(blueCell.goldRegion.getTexture(), true);
+    const fallbackWorldSize = window.getServerWorldSize(
+      _Game.currentGame.options.serverId,
+    );
     this.blueGrid.setDimensions(
       0,
       0,
-      this.width || 24000,
-      this.height || 24000,
+      this.width || fallbackWorldSize,
+      this.height || fallbackWorldSize,
     );
     this.blueGrid.setAnchor(0, 0);
     this.blueGrid.setAlpha(1.5);
@@ -448,8 +468,8 @@ class World {
     this.purpleGrid.setDimensions(
       48,
       48,
-      (this.width || 24000) - 48,
-      (this.height || 24000) - 48,
+      (this.width || fallbackWorldSize) - 48,
+      (this.height || fallbackWorldSize) - 48,
     );
     this.purpleGrid.setAnchor(0, 0);
     this.purpleGrid.setAlpha(1.75);

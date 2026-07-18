@@ -108,8 +108,9 @@ class UiServerSwitcher extends _UiComponent {
     if (type === "server") {
       return `https://zombs.io/#/${serverId}/sandbox`;
     } else {
-      var x = 12000;
-      var y = 12000;
+      var worldSize = window.getServerWorldSize(serverId);
+      var x = worldSize / 2;
+      var y = worldSize / 2;
       var pos = this.getPlayerPosition();
       if (pos) {
         x = pos.x;

@@ -29,9 +29,21 @@ class Game extends EventEmitter {
     Game.currentGame = this;
     this.options = options || {};
     defer(() => {
-      this.setNetworkEntityPooling(826);
+      const serverConfigs = Object.values(window.serverspots);
+      const maxResourceUid = Math.max(
+        ...Object.keys(window.serverspots).map(window.getServerMaxUid),
+      );
+      const maxNeutralCamps = Math.max(
+        ...serverConfigs.map((serverConfig) => {
+          const boundary = serverConfig.uidToClass.find(
+            (entry) => entry.model === "NeutralCamp",
+          );
+          return boundary ? boundary.maxUid - boundary.minUid + 1 : 0;
+        }),
+      );
+      this.setNetworkEntityPooling(maxResourceUid + 1);
       // this.setModelEntityPooling("RecoilModel", 800);
-      this.setModelEntityPooling("NeutralCampModel", 25);
+      this.setModelEntityPooling("NeutralCampModel", maxNeutralCamps);
       this.preload();
     });
   }

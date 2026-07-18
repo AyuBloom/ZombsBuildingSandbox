@@ -74,6 +74,16 @@ class LocalNetworkAdapter extends _NetworkAdapter {
     const currentServerId = _Game.currentGame.options.serverId;
     const worldSize = window.getServerWorldSize(currentServerId);
     const maxResourceUid = window.getServerMaxUid(currentServerId);
+    if (window.customSpawnPoint) {
+      window.customSpawnPoint.x = Math.max(
+        0,
+        Math.min(worldSize, window.customSpawnPoint.x),
+      );
+      window.customSpawnPoint.y = Math.max(
+        0,
+        Math.min(worldSize, window.customSpawnPoint.y),
+      );
+    }
 
     this.entityManager.reset(maxResourceUid);
     this.movementController.reset();

@@ -64,8 +64,9 @@ class UiMap extends _UiComponent {
     var pctX = clickX / rect.width;
     var pctY = clickY / rect.height;
 
-    var worldWidth = _Game.currentGame.world.getWidth() || 24000;
-    var worldHeight = _Game.currentGame.world.getHeight() || 24000;
+    var fallbackWorldSize = window.getServerWorldSize(_Game.currentGame.options.serverId);
+    var worldWidth = _Game.currentGame.world.getWidth() || fallbackWorldSize;
+    var worldHeight = _Game.currentGame.world.getHeight() || fallbackWorldSize;
 
     var targetX = Math.round(pctX * worldWidth);
     var targetY = Math.round(pctY * worldHeight);
@@ -91,8 +92,9 @@ class UiMap extends _UiComponent {
     var pctX = clickX / rect.width;
     var pctY = clickY / rect.height;
 
-    var worldWidth = _Game.currentGame.world.getWidth() || 24000;
-    var worldHeight = _Game.currentGame.world.getHeight() || 24000;
+    var fallbackWorldSize = window.getServerWorldSize(_Game.currentGame.options.serverId);
+    var worldWidth = _Game.currentGame.world.getWidth() || fallbackWorldSize;
+    var worldHeight = _Game.currentGame.world.getHeight() || fallbackWorldSize;
 
     var targetX = Math.round(pctX * worldWidth);
     var targetY = Math.round(pctY * worldHeight);

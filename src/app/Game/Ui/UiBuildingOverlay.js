@@ -898,7 +898,8 @@ class UiBuildingOverlay extends _UiComponent {
       }
 
       const game = window.currentGame || _Game.currentGame;
-      let playerPos = { x: 12000, y: 12000 };
+      const worldSize = window.getServerWorldSize(game.options.serverId);
+      let playerPos = { x: worldSize / 2, y: worldSize / 2 };
       if (this.ui.playerTick && this.ui.playerTick.position) {
         playerPos = this.ui.playerTick.position;
       }

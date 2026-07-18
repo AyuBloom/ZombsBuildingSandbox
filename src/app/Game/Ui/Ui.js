@@ -565,8 +565,9 @@ class Ui extends EventEmitter {
   }
   teleportToWorldPosition(screenX, screenY) {
     var worldPos = _Game.currentGame.renderer.screenToWorld(screenX, screenY);
-    var worldWidth = _Game.currentGame.world.getWidth() || 24000;
-    var worldHeight = _Game.currentGame.world.getHeight() || 24000;
+    var fallbackWorldSize = window.getServerWorldSize(_Game.currentGame.options.serverId);
+    var worldWidth = _Game.currentGame.world.getWidth() || fallbackWorldSize;
+    var worldHeight = _Game.currentGame.world.getHeight() || fallbackWorldSize;
     var targetX = Math.round(worldPos.x);
     var targetY = Math.round(worldPos.y);
     targetX = Math.max(192, Math.min(worldWidth - 192, targetX));

@@ -152,7 +152,21 @@ class UiIntro extends _UiComponent {
     }
   }
   onServerChange(event) {
+    const worldSize = this.getWorldSize(event.target.value);
+    if (window.customSpawnPoint) {
+      window.customSpawnPoint.x = Math.max(
+        0,
+        Math.min(worldSize, window.customSpawnPoint.x),
+      );
+      window.customSpawnPoint.y = Math.max(
+        0,
+        Math.min(worldSize, window.customSpawnPoint.y),
+      );
+    }
     this.updatePreview();
+  }
+  getWorldSize(serverId = this.serverElem.value) {
+    return window.getServerWorldSize(serverId);
   }
   updatePreview() {
     const serverId = this.serverElem.value;
@@ -182,9 +196,10 @@ class UiIntro extends _UiComponent {
       window.serverspots[serverId].spotEncoded,
       serverId,
     );
+    const worldSize = this.getWorldSize(serverId);
     if (this.lastServerId !== serverId) {
       this.lastServerId = serverId;
-      this.preRenderMap(spots);
+      this.preRenderMap(spots, worldSize);
     }
 
     this.drawSpots(serverId, spots);
@@ -201,10 +216,10 @@ class UiIntro extends _UiComponent {
         window.serverspots[serverId].spotEncoded,
         serverId,
       );
-      this.preRenderMap(spots);
+      this.preRenderMap(spots, this.getWorldSize(serverId));
     }
   }
-  preRenderMap(spots) {
+  preRenderMap(spots, worldSize) {
     if (!this.offscreenCtx || !this.offscreenCanvas) return;
     const octx = this.offscreenCtx;
     const width = this.offscreenCanvas.width;
@@ -228,7 +243,7 @@ class UiIntro extends _UiComponent {
       octx.stroke();
     }
 
-    const scale = width / 24000;
+    const scale = width / worldSize;
     const treeSize = 192 * scale;
     const stoneSize = 144 * scale;
     const campSize = 144 * scale;
@@ -299,11 +314,16 @@ class UiIntro extends _UiComponent {
       ctx.drawImage(this.offscreenCanvas, 0, 0);
     }
 
-    const scale = width / 24000;
+    const worldSize = this.getWorldSize(serverId);
+    const scale = width / worldSize;
 
     // Draw Player Spawn Indicator
-    const spawnX = window.customSpawnPoint ? window.customSpawnPoint.x : 12000;
-    const spawnY = window.customSpawnPoint ? window.customSpawnPoint.y : 12000;
+    const spawnX = window.customSpawnPoint
+      ? window.customSpawnPoint.x
+      : worldSize / 2;
+    const spawnY = window.customSpawnPoint
+      ? window.customSpawnPoint.y
+      : worldSize / 2;
     const sx = spawnX * scale;
     const sy = spawnY * scale;
 
@@ -358,8 +378,8 @@ class UiIntro extends _UiComponent {
       }
 
       // Zoomed Spots with O(1) viewport culling logic
-      const gameX = Math.round((cx / width) * 24000);
-      const gameY = Math.round((cy / height) * 24000);
+      const gameX = Math.round((cx / width) * worldSize);
+      const gameY = Math.round((cy / height) * worldSize);
       const margin = 1100; // 960 game units radius + padding margin
 
       const treeSize = 192 * scale;
@@ -456,12 +476,13 @@ class UiIntro extends _UiComponent {
     const cx = event.clientX - rect.left;
     const cy = event.clientY - rect.top;
 
-    const gameX = Math.round((cx / this.canvas.width) * 24000);
-    const gameY = Math.round((cy / this.canvas.height) * 24000);
+    const worldSize = this.getWorldSize();
+    const gameX = Math.round((cx / this.canvas.width) * worldSize);
+    const gameY = Math.round((cy / this.canvas.height) * worldSize);
 
     // Clamp coordinates
-    const clampedX = Math.max(0, Math.min(24000, gameX));
-    const clampedY = Math.max(0, Math.min(24000, gameY));
+    const clampedX = Math.max(0, Math.min(worldSize, gameX));
+    const clampedY = Math.max(0, Math.min(worldSize, gameY));
 
     window.customSpawnPoint = { x: clampedX, y: clampedY };
     this.updatePreview();
@@ -472,8 +493,9 @@ class UiIntro extends _UiComponent {
     const cx = event.clientX - rect.left;
     const cy = event.clientY - rect.top;
 
-    const gameX = Math.round((cx / this.canvas.width) * 24000);
-    const gameY = Math.round((cy / this.canvas.height) * 24000);
+    const worldSize = this.getWorldSize();
+    const gameX = Math.round((cx / this.canvas.width) * worldSize);
+    const gameY = Math.round((cy / this.canvas.height) * worldSize);
 
     this.coordsElem.innerText = "X: " + gameX + " | Y: " + gameY;
     this.coordsElem.style.color = "#eee";
@@ -628,9 +650,10 @@ class UiIntro extends _UiComponent {
       var parseX = parseInt(x);
       var parseY = parseInt(y);
       if (!isNaN(parseX) && !isNaN(parseY)) {
+        const worldSize = this.getWorldSize(serverId || this.serverElem.value);
         window.customSpawnPoint = {
-          x: Math.max(0, Math.min(24000, parseX)),
-          y: Math.max(0, Math.min(24000, parseY))
+          x: Math.max(0, Math.min(worldSize, parseX)),
+          y: Math.max(0, Math.min(worldSize, parseY))
         };
       }
     }
